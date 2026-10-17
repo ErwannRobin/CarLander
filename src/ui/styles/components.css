@@ -1,0 +1,445 @@
+/* Shared components: medal, level profile, quality badge, form controls, key-cap variants. */
+
+/* ------------------------------------------------------------------ */
+/* Medal                                                               */
+/* ------------------------------------------------------------------ */
+
+.rf-medal {
+  --m-size: calc(var(--rf-u) * 56);
+  --m-hi: #ffffff;
+  --m-mid: #c6cbd1;
+  --m-lo: #6d747d;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: var(--m-size);
+  height: var(--m-size);
+  border-radius: 50%;
+}
+.rf-medal--sm {
+  --m-size: max(14px, calc(var(--rf-u) * 16));
+}
+.rf-medal--lg {
+  --m-size: max(92px, calc(var(--rf-u) * 150));
+}
+.rf-medal--gold {
+  --m-hi: #fff2cf;
+  --m-mid: var(--rf-gold);
+  --m-lo: var(--rf-gold-dark);
+}
+.rf-medal--silver {
+  --m-hi: #ffffff;
+  --m-mid: var(--rf-silver);
+  --m-lo: var(--rf-silver-dark);
+}
+.rf-medal--bronze {
+  --m-hi: #f8d8bd;
+  --m-mid: var(--rf-bronze);
+  --m-lo: var(--rf-bronze-dark);
+}
+.rf-medal:not(.rf-medal--none) {
+  background: conic-gradient(
+    from 210deg,
+    var(--m-hi),
+    var(--m-lo) 16%,
+    var(--m-mid) 30%,
+    var(--m-hi) 46%,
+    var(--m-lo) 64%,
+    var(--m-mid) 80%,
+    var(--m-hi)
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.38),
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    0 10px 24px -10px rgba(0, 0, 0, 0.7);
+}
+.rf-medal:not(.rf-medal--none)::before {
+  content: '';
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 28%, var(--m-hi) 0%, var(--m-mid) 42%, var(--m-lo) 100%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.65),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(0, 0, 0, 0.22);
+}
+.rf-medal--sm:not(.rf-medal--none)::before {
+  inset: 18%;
+}
+.rf-medal__glyph {
+  position: relative;
+  width: 56%;
+  height: 56%;
+  color: var(--m-lo);
+  stroke: currentColor;
+  opacity: 0.9;
+}
+.rf-medal--sm .rf-medal__glyph {
+  display: none;
+}
+.rf-medal--none {
+  border: 1px dashed var(--rf-line-3);
+  opacity: 0.8;
+}
+
+.rf-medal--reveal {
+  animation: rf-medal-in 900ms var(--rf-ease) both;
+}
+.rf-medal--reveal::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(115deg, transparent 38%, rgba(255, 255, 255, 0.7) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%;
+  background-position: 160% 0;
+  animation: rf-glint 1300ms 520ms var(--rf-ease) both;
+  pointer-events: none;
+}
+@keyframes rf-medal-in {
+  0% {
+    opacity: 0;
+    transform: perspective(700px) rotateY(-80deg) scale(0.72);
+  }
+  60% {
+    opacity: 1;
+    transform: perspective(700px) rotateY(10deg) scale(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rf-glint {
+  from {
+    background-position: 160% 0;
+  }
+  to {
+    background-position: -60% 0;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Level elevation profile                                             */
+/* ------------------------------------------------------------------ */
+
+.rf-profile {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.rf-profile * {
+  vector-effect: non-scaling-stroke;
+}
+.rf-profile__track {
+  fill: none;
+  stroke: var(--rf-ink);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rf-profile__pylons line,
+.rf-profile__truss line,
+.rf-profile__truss path {
+  fill: none;
+  stroke: rgba(241, 237, 230, 0.24);
+  stroke-width: 1;
+}
+.rf-profile__clouds {
+  stroke: rgba(241, 237, 230, 0.4);
+  stroke-width: 1;
+  stroke-dasharray: 1 5;
+  stroke-linecap: round;
+}
+.rf-profile__path {
+  fill: none;
+  stroke: rgba(241, 237, 230, 0.75);
+  stroke-width: 1.2;
+  stroke-dasharray: 2 4;
+  stroke-linecap: round;
+}
+.rf-profile__burn {
+  fill: none;
+  stroke: var(--rf-orange);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+.rf-profile__gate {
+  fill: none;
+  stroke: var(--rf-cyan);
+  stroke-width: 1.3;
+}
+.rf-profile__target {
+  fill: none;
+  stroke: var(--rf-cyan);
+  stroke-width: 1;
+  opacity: 0.9;
+}
+.rf-profile__led {
+  stroke: var(--rf-red);
+  stroke-width: 1.5;
+}
+.rf-profile__release {
+  stroke: var(--rf-cyan);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.rf-profile--locked .rf-profile__track,
+.rf-profile--locked .rf-profile__path,
+.rf-profile--locked .rf-profile__burn,
+.rf-profile--locked .rf-profile__gate,
+.rf-profile--locked .rf-profile__target,
+.rf-profile--locked .rf-profile__led,
+.rf-profile--locked .rf-profile__release {
+  stroke: rgba(198, 203, 209, 0.45);
+}
+.rf-profile--locked .rf-profile__track {
+  stroke-dasharray: 3 3;
+}
+
+/* ------------------------------------------------------------------ */
+/* Landing quality badge                                               */
+/* ------------------------------------------------------------------ */
+
+.rf-quality {
+  --q: var(--rf-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 6);
+  color: var(--q);
+  font: 600 var(--rf-fs-xs) / 1 var(--rf-sans);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.rf-quality__dot {
+  width: max(5px, calc(var(--rf-u) * 6));
+  height: max(5px, calc(var(--rf-u) * 6));
+  border-radius: 50%;
+  background: var(--q);
+  box-shadow: 0 0 8px var(--q);
+}
+.rf-quality--perfect {
+  --q: var(--rf-cyan);
+}
+.rf-quality--clean {
+  --q: var(--rf-ink);
+}
+.rf-quality--hard {
+  --q: var(--rf-amber);
+}
+.rf-quality--crash {
+  --q: var(--rf-red-soft);
+}
+
+/* ------------------------------------------------------------------ */
+/* Key-cap device variants                                             */
+/* ------------------------------------------------------------------ */
+
+.rf-keycap--touch,
+.rf-keycap--gamepad {
+  border-radius: 999px;
+  border-bottom-width: 1px;
+  padding: 0 calc(var(--rf-u) * 9);
+}
+.rf-keycap--gamepad {
+  min-width: max(22px, calc(var(--rf-u) * 24));
+}
+.rf-keycap--touch {
+  gap: calc(var(--rf-u) * 3);
+  padding: 0 calc(var(--rf-u) * 7);
+}
+.rf-keycap__icon {
+  width: 1.45em;
+  height: 1.45em;
+  flex: none;
+}
+.rf-keycap__dir {
+  font-size: 1.05em;
+  letter-spacing: 0.04em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Form controls                                                       */
+/* ------------------------------------------------------------------ */
+
+.rf-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) 3.2ch;
+  align-items: center;
+  gap: calc(var(--rf-u) * 14);
+  min-height: max(40px, calc(var(--rf-u) * 42));
+}
+.rf-field[data-disabled] {
+  opacity: 0.45;
+}
+.rf-field[data-dimmed] {
+  opacity: 0.5;
+}
+.rf-field__label {
+  font: 500 var(--rf-fs-base) / 1.3 var(--rf-sans);
+  color: var(--rf-ink);
+}
+.rf-field__detail {
+  font: 400 var(--rf-fs-xs) / 1.4 var(--rf-sans);
+  color: var(--rf-ink-3);
+}
+.rf-field__text {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--rf-u) * 3);
+  min-width: 0;
+}
+.rf-field__value {
+  font-size: var(--rf-fs-sm);
+  color: var(--rf-ink-3);
+  text-align: right;
+}
+
+.rf-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: max(24px, calc(var(--rf-u) * 24));
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+.rf-slider:focus-visible {
+  outline: none;
+}
+.rf-slider::-webkit-slider-runnable-track {
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--rf-cyan) var(--pct), var(--rf-line-2) var(--pct));
+}
+.rf-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: max(14px, calc(var(--rf-u) * 16));
+  height: max(14px, calc(var(--rf-u) * 16));
+  margin-top: calc(max(14px, calc(var(--rf-u) * 16)) / -2 + 1px);
+  border-radius: 50%;
+  background: var(--rf-ink);
+  box-shadow:
+    0 0 0 0 rgba(56, 232, 255, 0),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+  transition: box-shadow var(--rf-t1) var(--rf-ease);
+}
+.rf-slider:focus-visible::-webkit-slider-thumb,
+.rf-slider:hover::-webkit-slider-thumb {
+  box-shadow:
+    0 0 0 5px rgba(56, 232, 255, 0.28),
+    0 2px 6px rgba(0, 0, 0, 0.45);
+}
+.rf-slider::-moz-range-track {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--rf-line-2);
+}
+.rf-slider::-moz-range-progress {
+  height: 2px;
+  border-radius: 2px;
+  background: var(--rf-cyan);
+}
+.rf-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--rf-ink);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+.rf-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 5px rgba(56, 232, 255, 0.28);
+}
+
+.rf-field--switch,
+.rf-field--segmented {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+.rf-switch {
+  position: relative;
+  flex: none;
+  width: max(38px, calc(var(--rf-u) * 40));
+  height: max(22px, calc(var(--rf-u) * 22));
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--rf-line-2);
+  background: rgba(241, 237, 230, 0.05);
+  cursor: pointer;
+  transition:
+    background-color var(--rf-t2) var(--rf-ease),
+    border-color var(--rf-t2) var(--rf-ease);
+}
+.rf-switch__knob {
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: calc(100% / 2 - 4px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--rf-ink-3);
+  transform: translate(0, -50%);
+  transition:
+    transform var(--rf-t2) var(--rf-ease),
+    background-color var(--rf-t2) var(--rf-ease),
+    box-shadow var(--rf-t2) var(--rf-ease);
+}
+.rf-switch[aria-checked='true'] {
+  background: rgba(56, 232, 255, 0.16);
+  border-color: rgba(56, 232, 255, 0.55);
+}
+.rf-switch[aria-checked='true'] .rf-switch__knob {
+  transform: translate(calc(100% + 2px), -50%);
+  background: var(--rf-cyan);
+  box-shadow: 0 0 10px rgba(56, 232, 255, 0.55);
+}
+.rf-switch:focus-visible {
+  outline: 2px solid var(--rf-cyan);
+  outline-offset: 3px;
+}
+
+.rf-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--rf-line-2);
+  border-radius: calc(var(--rf-u) * 6);
+  background: rgba(0, 0, 0, 0.22);
+}
+.rf-segmented__opt {
+  min-width: max(62px, calc(var(--rf-u) * 72));
+  height: max(28px, calc(var(--rf-u) * 30));
+  padding: 0 calc(var(--rf-u) * 10);
+  border: 0;
+  border-radius: calc(var(--rf-u) * 4);
+  background: transparent;
+  color: var(--rf-ink-2);
+  font: 500 var(--rf-fs-sm) / 1 var(--rf-sans);
+  cursor: pointer;
+  transition:
+    background-color var(--rf-t1) var(--rf-ease),
+    color var(--rf-t1) var(--rf-ease);
+}
+.rf-segmented__opt:hover {
+  color: var(--rf-ink);
+  background: rgba(241, 237, 230, 0.06);
+}
+.rf-segmented__opt[aria-checked='true'] {
+  background: var(--rf-ink);
+  color: var(--rf-graphite);
+}
+.rf-segmented__opt:focus-visible {
+  outline: 2px solid var(--rf-cyan);
+  outline-offset: 1px;
+}
+
+.rf-btn__icon {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}

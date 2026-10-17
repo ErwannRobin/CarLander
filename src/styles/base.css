@@ -1,0 +1,54 @@
+/* Base reset + design tokens. UI-specific styles live next to their components (src/ui). */
+@import '@fontsource/michroma/400.css';
+@import '@fontsource-variable/inter';
+@import '@fontsource/jetbrains-mono/400.css';
+@import '@fontsource/jetbrains-mono/600.css';
+
+:root {
+  --graphite-900: #121417;
+  --graphite-800: #1a1d21;
+  --graphite-700: #24282d;
+  --graphite-600: #30353b;
+  --titanium-400: #7d848d;
+  --titanium-300: #a3aab2;
+  --titanium-200: #c6cbd1;
+  --warm-white: #f1ede6;
+  --cyan: #38e8ff;
+  --cyan-deep: #0bb4d4;
+  --orange: #ff7a1c;
+  --amber: #ffb020;
+  --red: #ff2b3d;
+  --font-display: 'Michroma', 'Inter Variable', system-ui, sans-serif;
+  --font-ui: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--graphite-900);
+  color: var(--warm-white);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+  touch-action: none;
+  user-select: none;
+}
+
+canvas {
+  display: block;
+  outline: none;
+}

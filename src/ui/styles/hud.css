@@ -1,0 +1,1124 @@
+/* In-game HUD. Edges only; the centre belongs to the car, prompts and landing feedback. */
+
+.rf-hud {
+  --touch-lift: 0px;
+  z-index: 10;
+  transition:
+    opacity var(--rf-t2) var(--rf-ease),
+    visibility 0s;
+}
+.rf-hud[data-hidden] {
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity var(--rf-t2) var(--rf-ease),
+    visibility 0s var(--rf-t2);
+}
+
+.rf-hud__tl,
+.rf-hud__tr,
+.rf-hud__bl,
+.rf-hud__bc,
+.rf-hud__br {
+  position: absolute;
+}
+.rf-hud__tl {
+  top: var(--rf-pad-t);
+  left: var(--rf-pad-l);
+}
+.rf-hud__tr {
+  top: var(--rf-pad-t);
+  right: var(--rf-pad-r);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(var(--rf-u) * 12);
+}
+.rf-hud__bl {
+  left: var(--rf-pad-l);
+  bottom: calc(var(--rf-pad-b) + var(--touch-lift));
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: calc(var(--rf-u) * 10);
+}
+.rf-hud__bc {
+  left: 50%;
+  bottom: calc(var(--rf-pad-b) + var(--touch-lift));
+  transform: translateX(-50%);
+}
+.rf-hud__br {
+  right: var(--rf-pad-r);
+  bottom: calc(var(--rf-pad-b) + var(--touch-lift));
+}
+.rf-hud__buttons {
+  display: flex;
+  gap: calc(var(--rf-u) * 8);
+}
+.rf-hud .rf-iconbtn[aria-pressed='true'] {
+  border-color: rgba(56, 232, 255, 0.6);
+  color: var(--rf-cyan-glow);
+}
+
+/* ------------------------------------------------------------------ */
+/* Objective                                                           */
+/* ------------------------------------------------------------------ */
+
+.rf-objective {
+  width: min(calc(var(--rf-u) * 330), 44vw);
+  padding: calc(var(--rf-u) * 13) calc(var(--rf-u) * 16) calc(var(--rf-u) * 14);
+  border-radius: calc(var(--rf-u) * 8);
+  animation: rf-obj-in 460ms var(--rf-ease) both;
+  transition: border-color var(--rf-t3) var(--rf-ease);
+}
+@keyframes rf-obj-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--rf-u) * -12));
+  }
+}
+.rf-objective__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--rf-u) * 12);
+}
+.rf-objective__title {
+  margin: 0;
+  font: 400 var(--rf-fs-sm) / 1.25 var(--rf-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rf-ink);
+}
+.rf-objective__steps {
+  display: flex;
+  flex: none;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.rf-objective__steps li {
+  width: max(7px, calc(var(--rf-u) * 9));
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(198, 203, 209, 0.25);
+  transition:
+    background-color var(--rf-t3) var(--rf-ease),
+    box-shadow var(--rf-t3) var(--rf-ease);
+}
+.rf-objective__steps li[data-state='done'] {
+  background: var(--rf-ink-3);
+}
+.rf-objective__steps li[data-state='current'] {
+  background: var(--rf-cyan);
+  box-shadow: 0 0 6px rgba(56, 232, 255, 0.55);
+}
+.rf-objective__text {
+  margin: calc(var(--rf-u) * 7) 0 0;
+  font: 400 var(--rf-fs-base) / 1.45 var(--rf-sans);
+  color: var(--rf-ink-2);
+  text-wrap: pretty;
+}
+.rf-objective__hints {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--rf-u) * 8) calc(var(--rf-u) * 18);
+  margin: calc(var(--rf-u) * 12) 0 0;
+  padding: calc(var(--rf-u) * 11) 0 0;
+  border-top: 1px solid var(--rf-line);
+  list-style: none;
+}
+.rf-objective__hints li {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 8);
+  font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-3);
+}
+.rf-objective[data-complete] {
+  border-color: rgba(56, 232, 255, 0.55);
+  animation: rf-obj-done 900ms var(--rf-ease);
+}
+.rf-objective[data-complete] .rf-objective__title {
+  color: var(--rf-cyan-glow);
+}
+@keyframes rf-obj-done {
+  0% {
+    box-shadow:
+      inset 0 1px 0 var(--rf-hi),
+      0 0 0 0 rgba(56, 232, 255, 0.5);
+  }
+  100% {
+    box-shadow:
+      inset 0 1px 0 var(--rf-hi),
+      0 0 0 calc(var(--rf-u) * 10) rgba(56, 232, 255, 0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Score                                                               */
+/* ------------------------------------------------------------------ */
+
+.rf-score {
+  display: grid;
+  gap: calc(var(--rf-u) * 7);
+  min-width: calc(var(--rf-u) * 150);
+  padding: calc(var(--rf-u) * 10) calc(var(--rf-u) * 14) calc(var(--rf-u) * 11);
+  border-radius: calc(var(--rf-u) * 8);
+}
+/* Instrument layout: label pinned left, value right — reads as a gauge, not an empty box. */
+.rf-score__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(var(--rf-u) * 12);
+}
+.rf-score__label {
+  font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-3);
+}
+.rf-score__value {
+  display: inline-block;
+  font: 400 var(--rf-fs-xl) / 1 var(--rf-mono);
+  letter-spacing: -0.02em;
+  color: var(--rf-ink);
+}
+.rf-score__value[data-bump] {
+  animation: rf-bump 520ms var(--rf-ease);
+}
+@keyframes rf-bump {
+  0% {
+    color: var(--rf-cyan-glow);
+    transform: translateY(-3px);
+  }
+  100% {
+    color: var(--rf-ink);
+    transform: none;
+  }
+}
+.rf-score__chain {
+  display: flex;
+  justify-content: space-between;
+  gap: calc(var(--rf-u) * 10);
+  font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-3);
+}
+.rf-score__chain .rf-num {
+  color: var(--rf-ink-2);
+}
+.rf-score__chain .rf-score__mult {
+  color: var(--rf-cyan);
+}
+
+/* ------------------------------------------------------------------ */
+/* Speed / thrust dial                                                 */
+/* ------------------------------------------------------------------ */
+
+.rf-speed {
+  position: relative;
+  flex: none;
+  width: max(122px, calc(var(--rf-u) * 164));
+  height: max(122px, calc(var(--rf-u) * 164));
+}
+.rf-speed__face {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 36%, rgba(30, 33, 38, 0.72), rgba(11, 13, 16, 0.84));
+  border: 1px solid var(--rf-line);
+  box-shadow:
+    inset 0 1px 0 var(--rf-hi),
+    0 18px 40px -22px rgba(0, 0, 0, 0.65);
+  -webkit-backdrop-filter: var(--rf-glass-filter);
+  backdrop-filter: var(--rf-glass-filter);
+}
+.rf-speed > svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.rf-speed__track {
+  fill: none;
+  stroke: rgba(198, 203, 209, 0.2);
+  stroke-width: 2;
+}
+.rf-speed__zone {
+  fill: none;
+  stroke: var(--rf-orange);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: 0.4;
+  transition: opacity var(--rf-t2) var(--rf-ease);
+}
+.rf-speed__ticks {
+  stroke: rgba(241, 237, 230, 0.32);
+  stroke-width: 1;
+}
+.rf-speed__mark {
+  stroke: var(--rf-orange-hot);
+  stroke-width: 1.5;
+  opacity: 0.8;
+}
+.rf-speed__fill {
+  fill: none;
+  stroke: var(--rf-cyan);
+  stroke-width: 3;
+  stroke-dasharray: 100 100;
+  transition:
+    stroke-dashoffset 140ms linear,
+    opacity 140ms linear;
+  filter: drop-shadow(0 0 3px rgba(56, 232, 255, 0.6));
+}
+.rf-speed__fill--boost {
+  stroke: var(--rf-orange);
+  filter: drop-shadow(0 0 4px rgba(255, 122, 28, 0.8));
+}
+.rf-fuel__track {
+  fill: none;
+  stroke: rgba(255, 122, 28, 0.16);
+  stroke-width: 3.5;
+}
+.rf-fuel__fill {
+  fill: none;
+  stroke: var(--rf-orange);
+  stroke-width: 3.5;
+  stroke-dasharray: 100 100;
+  opacity: 0.85;
+  transition:
+    stroke-dashoffset 200ms linear,
+    stroke var(--rf-t2) var(--rf-ease);
+}
+.rf-speed[data-boosting] .rf-fuel__fill {
+  stroke: var(--rf-orange-hot);
+  filter: drop-shadow(0 0 5px rgba(255, 122, 28, 0.9));
+}
+.rf-speed[data-boosting] .rf-speed__zone,
+.rf-speed[data-overspeed] .rf-speed__zone {
+  opacity: 0.85;
+}
+.rf-speed[data-low] .rf-fuel__track {
+  animation: rf-low-fuel 900ms ease-in-out infinite alternate;
+}
+@keyframes rf-low-fuel {
+  to {
+    stroke: rgba(255, 176, 32, 0.5);
+  }
+}
+.rf-speed__readout {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  padding-bottom: calc(var(--rf-u) * 6);
+}
+.rf-speed__value {
+  font: 300 max(28px, calc(var(--rf-u) * 42)) / 1 var(--rf-mono);
+  letter-spacing: -0.03em;
+  color: var(--rf-ink);
+}
+.rf-speed__unit {
+  margin-top: calc(var(--rf-u) * 5);
+  font: 500 var(--rf-fs-2xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-3);
+}
+.rf-speed__fuel {
+  position: absolute;
+  left: 50%;
+  bottom: 9%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--rf-u) * 6);
+  white-space: nowrap;
+  font: 500 var(--rf-fs-2xs) / 1 var(--rf-sans);
+  color: var(--rf-orange-hot);
+}
+.rf-speed__fuel .rf-num {
+  color: var(--rf-ink-2);
+}
+.rf-speed__fuel-icon {
+  display: none;
+  align-self: center;
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+}
+/* Compact dial (touch layout): the word no longer fits the chord under the arc. */
+.rf-hud[data-touch] .rf-speed__fuel {
+  gap: calc(var(--rf-u) * 3);
+}
+.rf-hud[data-touch] .rf-speed__fuel-icon {
+  display: block;
+}
+.rf-hud[data-touch] .rf-speed__fuel-label {
+  display: none;
+}
+.rf-speed__empty {
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--rf-amber);
+  animation: rf-ping 800ms ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rf-ping {
+  from {
+    opacity: 0.9;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.08);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Vacuum annunciator                                                  */
+/* ------------------------------------------------------------------ */
+
+.rf-vacuum {
+  position: relative;
+  display: grid;
+  gap: calc(var(--rf-u) * 9);
+  width: max(122px, calc(var(--rf-u) * 164));
+  padding: calc(var(--rf-u) * 10) calc(var(--rf-u) * 12) calc(var(--rf-u) * 11);
+  border-radius: calc(var(--rf-u) * 8);
+  transition:
+    border-color var(--rf-t2) var(--rf-ease),
+    box-shadow var(--rf-t2) var(--rf-ease);
+}
+.rf-vacuum__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(var(--rf-u) * 10);
+}
+.rf-vacuum__name {
+  font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-2);
+}
+.rf-vacuum__state {
+  font: 400 var(--rf-fs-2xs) / 1 var(--rf-display);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rf-ink-4);
+  transition: color var(--rf-t2) var(--rf-ease);
+}
+.rf-vacuum__bar {
+  height: 3px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgba(198, 203, 209, 0.18);
+}
+.rf-vacuum__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--rf-cyan);
+  box-shadow: 0 0 8px rgba(56, 232, 255, 0.8);
+  transform-origin: left center;
+  transition: transform 140ms linear;
+}
+.rf-vacuum__foot {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 8);
+  min-height: max(20px, calc(var(--rf-u) * 22));
+  font: 500 var(--rf-fs-2xs) / 1.2 var(--rf-sans);
+  color: var(--rf-ink-3);
+}
+.rf-vacuum__pct {
+  margin-left: auto;
+  color: var(--rf-cyan-glow);
+}
+.rf-vacuum[data-mode='armed'] {
+  border-color: rgba(56, 232, 255, 0.35);
+}
+.rf-vacuum[data-mode='armed'] .rf-vacuum__state {
+  color: var(--rf-cyan);
+  animation: rf-breathe 1100ms ease-in-out infinite alternate;
+}
+.rf-vacuum[data-mode='engaged'] {
+  border-color: rgba(56, 232, 255, 0.6);
+  box-shadow:
+    inset 0 1px 0 var(--rf-hi),
+    0 0 0 1px rgba(56, 232, 255, 0.16),
+    0 0 30px -6px rgba(56, 232, 255, 0.55);
+}
+.rf-vacuum[data-mode='engaged'] .rf-vacuum__state {
+  color: var(--rf-cyan-glow);
+  text-shadow: 0 0 10px rgba(56, 232, 255, 0.75);
+}
+.rf-vacuum__pulse {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid var(--rf-cyan);
+  border-radius: inherit;
+  animation: rf-ping 700ms ease-out forwards;
+  pointer-events: none;
+}
+@keyframes rf-breathe {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.45;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Flight strip + attitude indicator                                   */
+/* ------------------------------------------------------------------ */
+
+.rf-flight {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 24);
+  padding: calc(var(--rf-u) * 12) calc(var(--rf-u) * 22) calc(var(--rf-u) * 13);
+  border-radius: calc(var(--rf-u) * 10);
+  animation: rf-flight-in 320ms var(--rf-ease) both;
+}
+.rf-flight[data-closing] {
+  animation: rf-flight-out 260ms var(--rf-ease) forwards;
+}
+@keyframes rf-flight-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--rf-u) * 14));
+  }
+}
+@keyframes rf-flight-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--rf-u) * 10));
+  }
+}
+.rf-flight__stat {
+  display: grid;
+  gap: calc(var(--rf-u) * 7);
+  min-width: calc(var(--rf-u) * 62);
+}
+.rf-flight__label {
+  font: 500 var(--rf-fs-2xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-3);
+  white-space: nowrap;
+}
+.rf-flight__value {
+  font: 400 var(--rf-fs-lg) / 1 var(--rf-mono);
+  color: var(--rf-ink);
+  white-space: nowrap;
+}
+.rf-flight__stat--stake .rf-flight__value {
+  color: var(--rf-cyan-glow);
+}
+
+.rf-att {
+  --q: var(--rf-ink-3);
+  --dial: max(88px, calc(var(--rf-u) * 112));
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-self: stretch;
+  align-content: end;
+  min-width: var(--dial);
+}
+.rf-att[data-quality='perfect'] {
+  --q: var(--rf-cyan);
+}
+.rf-att[data-quality='clean'] {
+  --q: var(--rf-ink);
+}
+.rf-att[data-quality='hard'] {
+  --q: var(--rf-amber);
+}
+.rf-att[data-quality='crash'] {
+  --q: var(--rf-red-soft);
+}
+.rf-att__svg {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% - var(--rf-u) * 14);
+  width: var(--dial);
+  height: var(--dial);
+  overflow: visible;
+  transform: translateX(-50%);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
+}
+.rf-att__face {
+  fill: rgba(15, 17, 20, 0.84);
+  stroke: rgba(198, 203, 209, 0.16);
+  stroke-width: 1;
+}
+.rf-att__surface {
+  fill: color-mix(in srgb, var(--q) 18%, rgba(16, 18, 21, 0.2));
+  transition: fill var(--rf-t2) var(--rf-ease);
+}
+.rf-att__horizon {
+  stroke: var(--q);
+  stroke-width: 1.8;
+  transition: stroke var(--rf-t2) var(--rf-ease);
+}
+.rf-att__ladder {
+  fill: none;
+  stroke: rgba(241, 237, 230, 0.32);
+  stroke-width: 1;
+}
+.rf-att__ladder--perfect {
+  stroke: rgba(56, 232, 255, 0.7);
+}
+.rf-att__rim {
+  fill: none;
+  stroke: rgba(198, 203, 209, 0.32);
+  stroke-width: 1;
+}
+.rf-att__zone {
+  fill: none;
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+.rf-att__zone--clean {
+  stroke: rgba(241, 237, 230, 0.4);
+}
+.rf-att__zone--perfect {
+  stroke: var(--rf-cyan);
+}
+.rf-att__ticks {
+  stroke: rgba(241, 237, 230, 0.4);
+  stroke-width: 1;
+}
+.rf-att__pointer {
+  fill: var(--q);
+  transition: fill var(--rf-t2) var(--rf-ease);
+}
+.rf-att__car {
+  fill: none;
+  stroke: var(--rf-ink);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.rf-att__dot {
+  fill: var(--rf-ink);
+}
+.rf-att__label {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--rf-u) * 8);
+  font: 600 var(--rf-fs-xs) / 1 var(--rf-sans);
+  color: var(--q);
+  white-space: nowrap;
+}
+.rf-att__angle {
+  font-weight: 400;
+  color: var(--rf-ink-2);
+}
+.rf-att__quality--none {
+  font-weight: 500;
+  color: var(--rf-ink-3);
+}
+.rf-feed,
+.rf-landing,
+.rf-crash {
+  text-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.5),
+    0 0 18px rgba(0, 0, 0, 0.3);
+}
+
+/* ------------------------------------------------------------------ */
+/* Trick feed                                                          */
+/* ------------------------------------------------------------------ */
+
+.rf-feed {
+  position: absolute;
+  right: var(--rf-pad-r);
+  top: 38%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: calc(var(--rf-u) * 6);
+}
+.rf-feed__item {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--rf-u) * 14);
+  padding: calc(var(--rf-u) * 8) calc(var(--rf-u) * 12) calc(var(--rf-u) * 8) calc(var(--rf-u) * 48);
+  border-right: 2px solid var(--rf-cyan);
+  background: linear-gradient(90deg, rgba(10, 11, 13, 0), rgba(10, 11, 13, 0.55) 55%);
+  animation:
+    rf-feed-in 380ms var(--rf-ease) both,
+    rf-feed-out 420ms calc(var(--life, 2800ms) - 420ms) var(--rf-ease) forwards;
+}
+.rf-feed__label {
+  font: 400 var(--rf-fs-base) / 1 var(--rf-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--rf-ink);
+}
+.rf-feed__pts {
+  font: 400 var(--rf-fs-base) / 1 var(--rf-mono);
+  color: var(--rf-cyan-glow);
+}
+/* Same backing as the feed rows (a bare line of grey text vanished on bright skies), quieter:
+   thinner rule, smaller type, the multiplier carries the colour. */
+.rf-feed__combo {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--rf-u) * 8);
+  margin-top: calc(var(--rf-u) * 2);
+  padding: calc(var(--rf-u) * 6) calc(var(--rf-u) * 12) calc(var(--rf-u) * 6) calc(var(--rf-u) * 40);
+  border-right: 1px solid rgba(56, 232, 255, 0.55);
+  background: linear-gradient(90deg, rgba(10, 11, 13, 0), rgba(10, 11, 13, 0.55) 55%);
+  font: 600 var(--rf-fs-xs) / 1 var(--rf-sans);
+  color: var(--rf-ink-2);
+  animation: rf-rise-in 300ms var(--rf-ease) both;
+}
+.rf-feed__combo .rf-num {
+  font-size: var(--rf-fs-base);
+  font-weight: 400;
+  color: var(--rf-cyan-glow);
+}
+@keyframes rf-feed-in {
+  from {
+    opacity: 0;
+    transform: translateX(calc(var(--rf-u) * 28));
+  }
+}
+@keyframes rf-feed-out {
+  to {
+    opacity: 0;
+    transform: translateX(calc(var(--rf-u) * 14));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Centre prompt                                                       */
+/* ------------------------------------------------------------------ */
+
+.rf-prompt-wrap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20%;
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--rf-pad-r) 0 var(--rf-pad-l);
+}
+.rf-prompt {
+  --tone: var(--rf-ink-3);
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 16);
+  max-width: 100%;
+  padding: calc(var(--rf-u) * 11) calc(var(--rf-u) * 26) calc(var(--rf-u) * 11) calc(var(--rf-u) * 12);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
+  background: linear-gradient(180deg, rgba(36, 40, 45, 0.55), rgba(16, 18, 21, 0.68)), var(--rf-glass);
+  -webkit-backdrop-filter: var(--rf-glass-filter);
+  backdrop-filter: var(--rf-glass-filter);
+  box-shadow:
+    inset 0 1px 0 var(--rf-hi),
+    0 0 34px -12px var(--tone),
+    0 20px 40px -24px rgba(0, 0, 0, 0.6);
+  animation: rf-prompt-in 420ms var(--rf-ease) both;
+}
+.rf-prompt[data-closing] {
+  animation: rf-prompt-out 220ms var(--rf-ease) forwards;
+}
+.rf-prompt[data-tone='action'] {
+  --tone: var(--rf-cyan);
+}
+.rf-prompt[data-tone='warning'] {
+  --tone: var(--rf-amber);
+}
+.rf-prompt[data-tone='success'] {
+  --tone: var(--rf-cyan-glow);
+}
+.rf-prompt__text {
+  font: 400 var(--rf-fs-md) / 1.25 var(--rf-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rf-ink);
+  /* narrow layouts wrap: even lines, never one orphaned word */
+  text-wrap: balance;
+}
+.rf-prompt .rf-keycap {
+  border-color: color-mix(in srgb, var(--tone) 80%, transparent);
+  animation: rf-key-pulse 1400ms ease-in-out infinite;
+}
+@keyframes rf-key-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--tone) 55%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 7px color-mix(in srgb, var(--tone) 0%, transparent);
+  }
+}
+@keyframes rf-prompt-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--rf-u) * -8)) scale(0.97);
+  }
+}
+@keyframes rf-prompt-out {
+  to {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Landing banner                                                      */
+/* ------------------------------------------------------------------ */
+
+.rf-landing {
+  --q: var(--rf-ink);
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 30%;
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--rf-u) * 13);
+  text-align: center;
+  animation:
+    rf-banner-in 560ms var(--rf-ease) both,
+    rf-banner-out 420ms calc(var(--life, 2800ms) - 420ms) var(--rf-ease) forwards;
+}
+.rf-landing::before {
+  /* broadcast band: a soft dark ribbon that keeps the word legible on bright skies */
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(var(--rf-u) * -26);
+  bottom: calc(var(--rf-u) * -22);
+  background: linear-gradient(180deg, rgba(10, 11, 13, 0), rgba(10, 11, 13, 0.4) 28%, rgba(10, 11, 13, 0.4) 72%, rgba(10, 11, 13, 0));
+  -webkit-mask-image: linear-gradient(90deg, transparent 8%, #000 34%, #000 66%, transparent 92%);
+  mask-image: linear-gradient(90deg, transparent 8%, #000 34%, #000 66%, transparent 92%);
+  z-index: -1;
+}
+.rf-landing[data-quality='perfect'] {
+  --q: var(--rf-cyan);
+}
+.rf-landing[data-quality='hard'] {
+  --q: var(--rf-amber);
+}
+.rf-landing__word {
+  font: 400 var(--rf-fs-2xl) / 1 var(--rf-display);
+  letter-spacing: 0.26em;
+  margin-right: -0.26em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--rf-ink);
+  animation: rf-track-in 700ms var(--rf-ease) both;
+}
+.rf-landing[data-quality='hard'] .rf-landing__word {
+  color: var(--rf-amber);
+}
+.rf-landing__rule {
+  display: flex;
+  justify-content: center;
+  width: min(70vw, calc(var(--rf-u) * 440));
+  height: 1px;
+}
+.rf-landing__rule > span {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, var(--q), transparent);
+  box-shadow: 0 0 12px var(--q);
+  animation: rf-draw-x 760ms 120ms var(--rf-ease) both;
+}
+.rf-landing__stats {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: calc(var(--rf-u) * 8) calc(var(--rf-u) * 22);
+  font: 500 var(--rf-fs-sm) / 1 var(--rf-sans);
+  color: var(--rf-ink-2);
+}
+.rf-landing__stat b {
+  margin: 0 calc(var(--rf-u) * 3);
+  font-weight: 400;
+  color: var(--rf-ink);
+}
+.rf-landing__stat--target {
+  color: var(--rf-cyan);
+}
+.rf-landing__points b {
+  font: 400 var(--rf-fs-lg) / 1 var(--rf-mono);
+  color: var(--q);
+}
+.rf-landing[data-quality='clean'] .rf-landing__points b {
+  color: var(--rf-ink);
+}
+.rf-landing__mult {
+  margin-left: calc(var(--rf-u) * 7);
+  font-size: var(--rf-fs-sm);
+  color: var(--rf-ink-2);
+}
+@keyframes rf-banner-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+}
+@keyframes rf-banner-out {
+  to {
+    opacity: 0;
+    transform: translateY(calc(var(--rf-u) * -8));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Control guide                                                       */
+/* ------------------------------------------------------------------ */
+
+.rf-guide {
+  width: max(240px, calc(var(--rf-u) * 296));
+  padding: calc(var(--rf-u) * 12) calc(var(--rf-u) * 14) calc(var(--rf-u) * 8);
+  border-radius: calc(var(--rf-u) * 8);
+  animation: rf-rise-in 260ms var(--rf-ease) both;
+}
+.rf-guide__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: calc(var(--rf-u) * 6);
+}
+.rf-guide__title {
+  margin: 0;
+  font: 400 var(--rf-fs-2xs) / 1 var(--rf-display);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--rf-ink-2);
+}
+.rf-guide__close {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 6);
+  padding: calc(var(--rf-u) * 4);
+  border: 0;
+  background: none;
+  color: var(--rf-ink-3);
+  font: 500 var(--rf-fs-2xs) / 1 var(--rf-sans);
+  cursor: pointer;
+}
+.rf-guide__close:hover {
+  color: var(--rf-ink);
+}
+.rf-guide__close:focus-visible {
+  outline: 1.5px solid var(--rf-cyan);
+  outline-offset: 2px;
+  border-radius: calc(var(--rf-u) * 4);
+}
+.rf-guide__list {
+  display: grid;
+  margin: 0;
+}
+.rf-guide__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--rf-u) * 12);
+  padding: calc(var(--rf-u) * 6) 0;
+  border-top: 1px solid var(--rf-line);
+}
+.rf-guide__row dt {
+  display: grid;
+  gap: 2px;
+  font: 500 var(--rf-fs-xs) / 1.25 var(--rf-sans);
+  color: var(--rf-ink);
+}
+.rf-guide__detail {
+  font-size: var(--rf-fs-2xs);
+  font-weight: 400;
+  color: var(--rf-ink-4);
+}
+.rf-guide__row dd {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Touch / small screens                                               */
+/* ------------------------------------------------------------------ */
+
+/* Bottom clusters lift above the thumb controls. */
+.rf-hud[data-touch] {
+  --touch-lift: max(176px, calc(var(--rf-u) * 196));
+}
+.rf-hud[data-touch] .rf-speed {
+  width: max(112px, calc(var(--rf-u) * 140));
+  height: max(112px, calc(var(--rf-u) * 140));
+}
+/* Phones: the right-hand column between the score and the thumb buttons holds two feed rows
+   (the newest); older rows would run into the flight card / roll buttons. */
+.rf-hud[data-touch] .rf-feed__item:nth-last-child(n + 3 of .rf-feed__item) {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .rf-objective {
+    width: auto;
+    max-width: calc(100vw - var(--rf-pad-l) - var(--rf-pad-r) - 150px);
+    padding: calc(var(--rf-u) * 11) calc(var(--rf-u) * 13) calc(var(--rf-u) * 12);
+  }
+  .rf-objective__steps {
+    display: none;
+  }
+  .rf-score {
+    min-width: 0;
+  }
+  .rf-vacuum {
+    width: max(132px, calc(var(--rf-u) * 150));
+  }
+  .rf-vacuum__foot span:not(.rf-keys):not(.rf-vacuum__pct) {
+    display: none;
+  }
+  /* Flight instruments move to the right, mirroring the speed dial, as a compact card. */
+  .rf-hud__bc {
+    left: auto;
+    right: var(--rf-pad-r);
+    transform: none;
+  }
+  .rf-flight {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-areas:
+      'att att'
+      'alt air';
+    justify-items: center;
+    gap: calc(var(--rf-u) * 10) calc(var(--rf-u) * 18);
+    padding: calc(var(--rf-u) * 12) calc(var(--rf-u) * 16) calc(var(--rf-u) * 12);
+  }
+  .rf-flight > .rf-flight__stat:nth-child(1) {
+    grid-area: alt;
+  }
+  .rf-flight > .rf-flight__stat:nth-child(2) {
+    grid-area: air;
+  }
+  .rf-flight__stat--secondary {
+    display: none;
+  }
+  .rf-flight__stat {
+    min-width: 0;
+  }
+  .rf-att {
+    --dial: max(80px, calc(var(--rf-u) * 92));
+    grid-area: att;
+    gap: calc(var(--rf-u) * 6);
+    min-width: 0;
+  }
+  .rf-att__svg {
+    position: static;
+    transform: none;
+  }
+  .rf-prompt__text {
+    font-size: var(--rf-fs-sm);
+    letter-spacing: 0.12em;
+  }
+  /* clear of the (taller, narrower) objective panel above it */
+  .rf-prompt-wrap {
+    top: 24%;
+  }
+  .rf-landing__word {
+    font-size: min(var(--rf-fs-2xl), 6.2vw);
+    letter-spacing: 0.2em;
+    margin-right: -0.2em;
+  }
+  .rf-feed {
+    top: 44%;
+  }
+}
+
+/* Short landscape phones: speed sits bottom-centre between the thumbs, a compact flight bar
+   (inline mini attitude dial) sits top-centre between the objective and the buttons. */
+@media (max-height: 520px) {
+  .rf-hud[data-touch] {
+    --touch-lift: 0px;
+  }
+  .rf-hud[data-touch] .rf-hud__bl {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .rf-hud[data-touch] .rf-vacuum {
+    position: absolute;
+    left: calc(100% + 10px);
+    bottom: 0;
+    width: max(120px, calc(var(--rf-u) * 140));
+  }
+  .rf-hud[data-touch] .rf-vacuum__foot span:not(.rf-keys):not(.rf-vacuum__pct) {
+    display: none;
+  }
+  .rf-hud[data-touch] .rf-hud__bc {
+    top: var(--rf-pad-t);
+    bottom: auto;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+  .rf-hud[data-touch] .rf-flight {
+    display: flex;
+    align-items: center;
+    gap: calc(var(--rf-u) * 14);
+    padding: calc(var(--rf-u) * 6) calc(var(--rf-u) * 14) calc(var(--rf-u) * 6) calc(var(--rf-u) * 8);
+  }
+  .rf-hud[data-touch] .rf-flight__stat--secondary {
+    display: none;
+  }
+  .rf-hud[data-touch] .rf-flight__stat {
+    min-width: 0;
+  }
+  .rf-hud[data-touch] .rf-att {
+    --dial: 52px;
+    order: -1;
+    display: flex;
+    align-items: center;
+    gap: calc(var(--rf-u) * 8);
+    min-width: 0;
+    align-self: center;
+  }
+  .rf-hud[data-touch] .rf-att__svg {
+    position: static;
+    transform: none;
+    filter: none;
+  }
+  .rf-hud[data-touch] .rf-att__label {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .rf-hud[data-touch] .rf-objective {
+    max-width: 38vw;
+  }
+  .rf-objective__text {
+    display: none;
+  }
+  /* The prompt drops below the top band (objective, flight bar, score + chain ≈ 115 px)
+     instead of covering it. */
+  .rf-prompt-wrap {
+    top: calc(var(--rf-pad-t) + 118px);
+  }
+  /* Touch: keep it out of the right-hand column too (trick feed under the score). */
+  .rf-hud[data-touch] .rf-prompt-wrap {
+    padding: 0 calc(var(--rf-pad-r) + 200px) 0 calc(var(--rf-pad-l) + 200px);
+  }
+  /* Touch: compact feed rows tucked under the score, clear of the roll buttons below. */
+  .rf-hud[data-touch] .rf-feed {
+    top: calc(var(--rf-pad-t) + 118px);
+    gap: 3px;
+  }
+  .rf-hud[data-touch] .rf-feed__item {
+    padding-top: calc(var(--rf-u) * 4);
+    padding-bottom: calc(var(--rf-u) * 4);
+  }
+  .rf-hud[data-touch] .rf-feed__combo {
+    margin-top: 0;
+    padding-top: calc(var(--rf-u) * 3);
+    padding-bottom: calc(var(--rf-u) * 3);
+  }
+}
