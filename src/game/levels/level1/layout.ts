@@ -77,8 +77,8 @@ export const L1_DEFAULTS: L1Params = {
   ],
   apronLength: 70,
   targetStart: 80,
-  targetEnd: 200,
-  targetHalfWidth: 13,
+  targetEnd: 250,
+  targetHalfWidth: 15,
 };
 
 export interface L1Layout {

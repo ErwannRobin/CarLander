@@ -44,7 +44,7 @@ const targetEndZ = L1.deck.at(L1.targetS.end).position.z;
 const finishFrame = L1.deck.end();
 
 const TARGET_CENTER = v3(targetCenter.position.clone().addScaledVector(targetCenter.up, 1.5));
-const TARGET_HALF: V3 = [L1.params.targetHalfWidth, 5, (L1.targetS.end - L1.targetS.start) / 2];
+const TARGET_HALF: V3 = [L1.params.targetHalfWidth, 8, (L1.targetS.end - L1.targetS.start) / 2];
 const TARGET_ROT: V3 = [-targetSlope, 0, 0];
 
 const ZONES: ZoneDef[] = [
@@ -166,6 +166,8 @@ export const LEVEL_1: LevelDef = {
   objectives: flow.objectives,
   floatingHints: hints,
   finish: { zoneId: L1_ZONE.target, minQuality: 'hard', settleTime: 1 },
+  // phone: the tilt gas is ignored in the air and the stabilizer holds itself (burn ends ≈ 0.75 s)
+  touchAssist: { ignorePitch: true, autoStabilize: 0.8 },
   // measured: any completion ≥ ≈ 4.2k (HARD, slow) · clean typical 5.8–7k · bullseye / PERFECT / flip ≥ 8.7k
   medals: { bronze: 3000, silver: 5600, gold: 8500 },
   // opening shot down the whole course axis from behind the start: runway, gateway, kicker, the

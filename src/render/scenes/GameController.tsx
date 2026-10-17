@@ -10,9 +10,11 @@ import { devHooks } from '@/game/devHooks';
 import { GameRunner } from '@/game/GameRunner';
 import { createLevelPilot } from '@/game/levels';
 import { runtime, RUNTIME_FRAME_PRIORITY } from '@/game/runtime';
+import { applyTouchAssist } from '@/game/sim/touchAssist';
 import type { LevelDef } from '@/game/types';
 import { calibrateTilt } from '@/input/gyro';
 import { InputManager } from '@/input/InputManager';
+import { touchInput } from '@/input/touchInput';
 import { cameraServices } from '@/render/camera/cameraServices';
 import { useAppStore } from '@/state/appStore';
 import { useCountdownStore } from '@/state/countdownStore';
@@ -65,7 +67,9 @@ export function GameController({ level }: { level: LevelDef }) {
       sampleInput: () => {
         const ap = devHooks.autopilot;
         if (ap && runner.sim) return ap(runner.sim.snapshot);
-        return input.sample();
+        const sampled = input.sample();
+        const assist = runner.level?.touchAssist;
+        return assist && touchInput.active && runner.sim ? applyTouchAssist(sampled, runner.sim.snapshot, assist) : sampled;
       },
       onEvent: (e) => {
         audio.handleEvent(e);

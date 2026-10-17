@@ -3,7 +3,7 @@
  * tests/levels/level1.test.ts):
  *
  *   run-up   full throttle down the runway, centered on the kicker (followTrack, W held)
- *   flight   at lift-off: let go of W, burn SPACE for 0.55 s (from 0.15 s after lift-off), tap W/S to
+ *   flight   at lift-off: let go of W, burn SPACE for 0.65 s (from 0.15 s after lift-off), tap W/S to
  *            put the nose on the landing slope, then hold SHIFT until touchdown → CLEAN, bullseye
  *   roll-out keep the car centered on the landing deck
  *
@@ -46,7 +46,7 @@ export const L1_REFERENCE: Required<Omit<L1PilotOptions, 'stabilizeDelay'>> & { 
   speed: 90,
   offset: 0,
   burnDelay: 0.15,
-  burnDuration: 0.55,
+  burnDuration: 0.65,
   holdW: 0,
   matchSlope: true,
   stabilize: 'after',
