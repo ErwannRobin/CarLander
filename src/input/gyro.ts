@@ -7,9 +7,14 @@
  * the player sees it steers right. Output goes to `touchInput.tilt`, merged into the steer axis by
  * InputManager.
  *
+ * Gas and brake come from the same sensor: tipping the top of the phone away from the player is gas,
+ * tipping it toward the player is brake. The neutral pose is wherever the phone was held when
+ * `calibrateTilt()` last ran (each run calls it when its 3-2-1 countdown reaches GO), so any comfortable
+ * grip works. Output goes to `touchInput.tiltThrottle`.
+ *
  * Availability:
- *  - iOS 13+ needs `DeviceOrientationEvent.requestPermission()` from a user gesture: `initGyro()` arms a
- *    one-shot click listener for it.
+ *  - iOS 13+ needs `DeviceOrientationEvent.requestPermission()` from a user gesture: the Play button calls
+ *    `requestGyro()`.
  *  - Elsewhere, listening starts right away. Browsers only deliver the sensor on secure contexts
  *    (https or localhost), and desktops fire one event with null angles: if no real reading arrives
  *    within a moment the status becomes 'unsupported' and the UI falls back to the on-screen stick.
@@ -33,6 +38,9 @@ export type GyroStatus =
 /** Wheel angle (deg) for full lock, and the dead band around straight ahead. */
 const FULL_LOCK_DEG = 32;
 const DEADZONE_DEG = 2.5;
+/** Gas / brake: dead band around the calibrated pose, and the tilt (deg) that gives full gas or full brake. */
+const THROTTLE_DEADZONE_DEG = 5;
+const THROTTLE_FULL_DEG = 20;
 /** Phones lying nearly flat have no meaningful wheel angle: below this in-plane gravity share we hold. */
 const MIN_IN_PLANE = 0.22;
 /** Low-pass factor per sensor event (~60 Hz): about 35 ms of lag. */
@@ -52,6 +60,10 @@ let requesting = false;
 let giveUpTimer = 0;
 let smoothed = 0;
 let lastAngle = 0;
+let smoothedPitch = 0;
+let pitchSeen = false;
+/** Pitch (deg) held as "neutral"; null until the first reading or calibrateTilt(). */
+let neutralPitch: number | null = null;
 const listeners = new Set<() => void>();
 
 function setStatus(next: GyroStatus): void {
@@ -96,6 +108,32 @@ export function steerFromTiltDeg(deg: number): number {
   return Math.sign(deg) * n * (0.55 + 0.45 * n);
 }
 
+/**
+ * How far the screen faces up, in degrees from "vertical" (0 = held upright in front of the player,
+ * + = top of the phone tipped away from the player, − = tipped toward the player), from W3C
+ * DeviceOrientation angles. Independent of the screen orientation.
+ */
+export function pitchAngleDeg(betaDeg: number, gammaDeg: number): number {
+  // component of "up" (against gravity) along the screen normal: third row of Rz(alpha) Rx(beta) Ry(gamma)
+  const uz = Math.cos(betaDeg * DEG) * Math.cos(gammaDeg * DEG);
+  return Math.asin(Math.max(-1, Math.min(1, uz))) / DEG;
+}
+
+/** Tilt away from the neutral pose (deg, + = forward) → throttle axis (−1 brake .. +1 gas): dead band, mild expo. */
+export function throttleFromPitchDeg(deltaDeg: number): number {
+  const a = Math.abs(deltaDeg);
+  if (a <= THROTTLE_DEADZONE_DEG) return 0;
+  const n = Math.min(1, (a - THROTTLE_DEADZONE_DEG) / (THROTTLE_FULL_DEG - THROTTLE_DEADZONE_DEG));
+  return Math.sign(deltaDeg) * n * (0.5 + 0.5 * n);
+}
+
+/** Take the current pose as "neutral" (no gas, no brake). Call when the player is ready to drive. */
+export function calibrateTilt(): void {
+  if (pitchSeen) neutralPitch = smoothedPitch;
+  else neutralPitch = null; // the first reading becomes neutral
+  touchInput.tiltThrottle = 0;
+}
+
 function screenAngle(): number {
   try {
     const a = screen.orientation?.angle;
@@ -119,6 +157,14 @@ function onOrientation(e: DeviceOrientationEvent): void {
   if (angle !== null) lastAngle = angle;
   smoothed += (steerFromTiltDeg(lastAngle) - smoothed) * SMOOTHING;
   touchInput.tilt = enabled ? smoothed : 0;
+
+  const pitch = pitchAngleDeg(e.beta, e.gamma);
+  if (!pitchSeen) {
+    pitchSeen = true;
+    smoothedPitch = pitch;
+  } else smoothedPitch += (pitch - smoothedPitch) * SMOOTHING;
+  neutralPitch ??= smoothedPitch;
+  touchInput.tiltThrottle = enabled ? throttleFromPitchDeg(smoothedPitch - neutralPitch) : 0;
 }
 
 function startListening(): void {
@@ -137,8 +183,13 @@ function permissionApi(): PermissionedEvent | null {
   return api && typeof api.requestPermission === 'function' ? api : null;
 }
 
-/** Ask for sensor access. Must run inside a user gesture (a click handler). */
+/**
+ * Ask for sensor access. Must run inside a user gesture (the Play button's click handler). On iOS this
+ * shows the system prompt; elsewhere there is nothing to ask and it just makes sure the sensor is
+ * being read. Safe to call repeatedly: it does nothing once the answer is known.
+ */
 export function requestGyro(): void {
+  if (status === 'idle') initGyro();
   const api = permissionApi();
   if (!api || status !== 'prompt' || requesting) return;
   requesting = true;
@@ -161,14 +212,9 @@ export function initGyro(): void {
     setStatus('unsupported');
     return;
   }
-  if (permissionApi()) {
-    setStatus('prompt');
-    // the first tap anywhere (title screen, level card…) is the gesture iOS wants
-    window.addEventListener('click', requestGyro, { capture: true, once: true });
-    window.addEventListener('touchend', requestGyro, { capture: true, once: true });
-  } else {
-    startListening();
-  }
+  // iOS: wait for requestGyro() from a tap (the Play button); elsewhere the sensor needs no permission
+  if (permissionApi()) setStatus('prompt');
+  else startListening();
 }
 
 /** Switch tilt steering on or off without tearing the sensor listener down (settings, stick fallback). */
@@ -176,6 +222,7 @@ export function setGyroEnabled(on: boolean): void {
   enabled = on;
   if (!on) {
     touchInput.tilt = 0;
+    touchInput.tiltThrottle = 0;
     smoothed = 0;
   }
 }

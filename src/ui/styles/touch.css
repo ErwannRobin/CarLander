@@ -94,14 +94,62 @@
 /* Buttons                                                             */
 /* ------------------------------------------------------------------ */
 
-/* Left thumb: BRAKE next to a bigger GAS (tilt steering). */
-.rf-touch__pedals {
+/* Left side with tilt controls: gas / brake read-out (tap = take the current pose as neutral). */
+.rf-tiltmeter {
   position: absolute;
-  left: calc(var(--rf-pad-l) + var(--rf-u) * 2);
-  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 2);
+  left: calc(var(--rf-pad-l) + var(--rf-u) * 12);
+  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 8);
   display: flex;
-  align-items: flex-end;
-  gap: calc(var(--rf-u) * 14);
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--rf-u) * 6);
+  padding: calc(var(--rf-u) * 8) calc(var(--rf-u) * 10);
+  border-radius: calc(var(--rf-u) * 14);
+  border: 1px solid rgba(241, 237, 230, 0.2);
+  background: rgba(14, 16, 19, 0.45);
+  color: var(--rf-ink-2);
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.rf-tiltmeter__label {
+  font: 600 max(7.5px, calc(var(--rf-u) * 8.5)) / 1 var(--rf-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rf-tiltmeter__track {
+  position: relative;
+  width: calc(var(--rf-u) * 12);
+  height: calc(var(--rf-u) * 110);
+  border-radius: calc(var(--rf-u) * 6);
+  background: rgba(241, 237, 230, 0.12);
+  overflow: hidden;
+}
+.rf-tiltmeter__track::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  background: rgba(241, 237, 230, 0.55);
+}
+.rf-tiltmeter__fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50%;
+  transform: scaleY(0);
+}
+.rf-tiltmeter__fill--gas {
+  top: 0;
+  transform-origin: 50% 100%;
+  background: var(--rf-cyan);
+}
+.rf-tiltmeter__fill--brake {
+  bottom: 0;
+  transform-origin: 50% 0;
+  background: var(--rf-orange);
 }
 /* Right thumb: JUMP next to THRUST, then a row of situational buttons above them. */
 .rf-touch__main,

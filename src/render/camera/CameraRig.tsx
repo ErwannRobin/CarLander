@@ -11,7 +11,8 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { CAMERA_PRIORITY, runtime } from '@/game/runtime';
-import { cameraLook, resetCameraLook } from '@/input/touchInput';
+import { cameraLook, clampZoom, resetCameraOrbit, wheelZoomFactor } from '@/input/touchInput';
+import { useAppStore } from '@/state/appStore';
 import { cameraServices } from './cameraServices';
 import { damp, noise1, smoothDampVec3, smoothstep } from './smoothing';
 
@@ -92,7 +93,7 @@ export function CameraRig() {
         s.mode = 'chase';
         s.initialized = false;
         s.trauma = 0;
-        resetCameraLook();
+        resetCameraOrbit(); // the zoom is the player's choice and stays
       }),
       runtime.events.on('crash', () => {
         s.mode = 'crash';
@@ -116,7 +117,18 @@ export function CameraRig() {
       runtime.events.on('jumpStart', () => (s.trauma = Math.min(1, s.trauma + 0.1))),
       runtime.events.on('vacuumEngaged', () => (s.trauma = Math.min(1, s.trauma + 0.15))),
     ];
-    return () => offs.forEach((o) => o());
+    // mouse wheel / trackpad pinch zoom the boom
+    const onWheel = (e: WheelEvent) => {
+      const app = useAppStore.getState();
+      if (app.screen !== 'playing' || app.overlay !== 'none') return;
+      e.preventDefault();
+      cameraLook.zoom = clampZoom(cameraLook.zoom * wheelZoomFactor(e));
+    };
+    window.addEventListener('wheel', onWheel, { passive: false });
+    return () => {
+      offs.forEach((o) => o());
+      window.removeEventListener('wheel', onWheel);
+    };
   }, [camera]);
 
   useFrame(() => {
@@ -228,8 +240,9 @@ export function CameraRig() {
       s.up.lerp(WORLD_UP, damp(2, dt)).normalize();
     }
 
-    // ---------------- free look (touch drag) ----------------
+    // ---------------- free look (touch drag) and zoom ----------------
     // The finger swings the boom around the car; a while after it lifts the camera drifts back behind.
+    // Pinch / wheel scale the boom and stay where the player left them.
     const look = cameraLook;
     if (look.dragging) look.idle = 0;
     else {
@@ -244,8 +257,8 @@ export function CameraRig() {
         }
       }
     }
-    if (s.mode === 'chase' && (look.yaw !== 0 || look.pitch !== 0)) {
-      tmp.copy(desired).sub(carFocus);
+    if (s.mode === 'chase' && (look.yaw !== 0 || look.pitch !== 0 || look.zoom !== 1)) {
+      tmp.copy(desired).sub(carFocus).multiplyScalar(look.zoom);
       upQ.setFromAxisAngle(s.up, look.yaw);
       tmp.applyQuaternion(upQ);
       const len = tmp.length();

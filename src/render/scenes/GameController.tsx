@@ -11,9 +11,11 @@ import { GameRunner } from '@/game/GameRunner';
 import { createLevelPilot } from '@/game/levels';
 import { runtime, RUNTIME_FRAME_PRIORITY } from '@/game/runtime';
 import type { LevelDef } from '@/game/types';
+import { calibrateTilt } from '@/input/gyro';
 import { InputManager } from '@/input/InputManager';
 import { cameraServices } from '@/render/camera/cameraServices';
 import { useAppStore } from '@/state/appStore';
+import { useCountdownStore } from '@/state/countdownStore';
 import { publishHud } from '@/state/hudStore';
 import { useProgressStore } from '@/state/progressStore';
 import { useSettingsStore } from '@/state/settingsStore';
@@ -29,6 +31,9 @@ function armDemoPilot(level: LevelDef | null) {
   if (!level) return;
   if (demoPilotOn) devHooks.autopilot = createLevelPilot(level.id).asFunction();
 }
+
+/** `?nocountdown=1`: no 3-2-1 before departure (QA and screenshot scripts). */
+const NO_COUNTDOWN = typeof location !== 'undefined' && new URLSearchParams(location.search).has('nocountdown');
 
 /** Per-frame renderer totals (all passes: shadows, scene, post) for QA via `window.__game.frameStats()`. */
 export interface FrameStats {
@@ -73,7 +78,15 @@ export function GameController({ level }: { level: LevelDef }) {
       publishHud: () => {
         if (runner.sim) publishHud(runner.sim.snapshot);
       },
+      onCountdown: (step) => {
+        useCountdownStore.getState().set(step);
+        if (step === null) return;
+        audio.ui(step === 0 ? 'start' : 'click');
+        // the pose the phone is held in as the lights go green is "no gas, no brake"
+        if (step === 0) calibrateTilt();
+      },
     });
+    runner.countdownEnabled = !NO_COUNTDOWN;
     runner.setFlightAssist(useSettingsStore.getState().flightAssist);
     runnerRef.current = runner;
 

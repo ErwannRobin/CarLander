@@ -4,6 +4,7 @@
  * Keyboard: Enter = Play (Play is focused on arrival), arrows move between actions.
  */
 import { useRef } from 'react';
+import { requestGyro } from '@/input/gyro';
 import { useAppStore } from '@/state/appStore';
 import { LEVEL_IDS, useProgressStore } from '@/state/progressStore';
 import { Icon } from './components/Icon';
@@ -19,11 +20,17 @@ const WORD_BOTTOM = 'FLIGHT';
 
 export function TitleScreen() {
   const overlay = useAppStore((s) => s.overlay);
-  const goLevelSelect = useAppStore((s) => s.goLevelSelect);
+  const goLevelSelectRaw = useAppStore((s) => s.goLevelSelect);
   const openSettings = useAppStore((s) => s.openSettings);
   const levels = useProgressStore((s) => s.levels);
   const mode = useInputMode();
   const active = overlay === 'none';
+
+  // Play is the tap that asks for the motion sensor (iOS only shows its prompt from a user gesture)
+  const goLevelSelect = () => {
+    requestGyro();
+    goLevelSelectRaw();
+  };
 
   const rootRef = useRef<HTMLDivElement>(null);
   const playRef = useRef<HTMLButtonElement>(null);
@@ -73,6 +80,7 @@ export function TitleScreen() {
             Settings
           </button>
         </div>
+        <p className="rf-title__hint">Drag to turn the car · pinch or scroll to zoom</p>
       </main>
 
       <footer className="rf-title__foot">

@@ -1,13 +1,14 @@
 /**
  * LEVEL 3 — THE INVERTED RAMP: headless proof (vitest, node).
+ * The road is one straight line from the start: no jump before the crescent, no turn on the beam.
  *
  *  (a) the reference pilot completes the level, deterministically, also through asFunction()
  *  (b) a keyboard-like variant (axes quantized to −1/0/+1 with a 0.1 s minimum hold, ±0.15 s jitter on
  *      discrete actions) completes it
- *  (c) sweeps mirroring real players: run-up speed (incl. W held the whole time), climb / beam speed,
+ *  (c) sweeps mirroring real players: road speed (incl. W held the whole time), climb / beam speed,
  *      ENTER timing, release position, recovery style, thrust start/duration — success windows are
  *      printed and asserted against human-sized minimums
- *  (d) failures behave sensibly (void, no vacuum, early release, landing inverted, steering off)
+ *  (d) failures behave sensibly (no vacuum, early release, landing inverted, steering off)
  * Plus first-attempt bullet-time prompts and the medal calibration.
  */
 import { describe, expect, it } from 'vitest';
@@ -29,8 +30,6 @@ interface Run {
   phase: string;
   crash: CrashReason | null;
   crashY: number;
-  lipSpeed: number;
-  approach: LandingResult | null;
   final: LandingResult | null;
   releaseSpeed: number;
   /** Distance before the beam end where ENTER was released (m), NaN if never. */
@@ -52,8 +51,6 @@ async function play(pilot: Autopilot, opts: { firstAttempt?: boolean; flightAssi
     phase: '',
     crash: null,
     crashY: NaN,
-    lipSpeed: 0,
-    approach: null,
     final: null,
     releaseSpeed: 0,
     releasedAt: NaN,
@@ -64,8 +61,6 @@ async function play(pilot: Autopilot, opts: { firstAttempt?: boolean; flightAssi
     promptIds: new Set(),
     climbImpactMax: 0,
   };
-  let landings = 0;
-  let onMain = false;
   let prevVacuum = false;
   runAutopilot(sim, pilot, {
     maxTime: opts.maxTime ?? 45,
@@ -74,19 +69,13 @@ async function play(pilot: Autopilot, opts: { firstAttempt?: boolean; flightAssi
       const v = s.snapshot.vehicle;
       for (const e of events) {
         r.events.push(e);
-        if (e.type === 'takeoff' && r.lipSpeed === 0) r.lipSpeed = e.speed;
-        if (e.type === 'landing') {
-          if (landings === 0) r.approach = e.result;
-          else r.final = e.result;
-          landings++;
-        }
+        if (e.type === 'landing') r.final = e.result;
         if (e.type === 'crash') {
           r.crash = e.reason;
           r.crashY = e.position.y;
         }
       }
-      if (landings > 0 && v.groundedWheels > 0) onMain = true;
-      if (onMain) {
+      {
         const p = main.update(v.position).s;
         r.maxProgress = Math.max(r.maxProgress, p);
         if (p > DECK_LEN && p < DECK_LEN + G.invertedStart)
@@ -120,8 +109,6 @@ async function playWrapped(pilot: Autopilot, wrap: Wrap, opts: { firstAttempt?: 
     phase: '',
     crash: null,
     crashY: NaN,
-    lipSpeed: 0,
-    approach: null,
     final: null,
     releaseSpeed: 0,
     releasedAt: NaN,
@@ -133,7 +120,6 @@ async function playWrapped(pilot: Autopilot, wrap: Wrap, opts: { firstAttempt?: 
     climbImpactMax: 0,
   };
   let recent: GameEvent[] = sim.drainEvents();
-  let landings = 0;
   let prevVacuum = false;
   for (let i = 0; i < 120 * (opts.maxTime ?? 45); i++) {
     const input = wrap({ ...wrapped.next(sim.snapshot, recent) }, sim);
@@ -143,12 +129,7 @@ async function playWrapped(pilot: Autopilot, wrap: Wrap, opts: { firstAttempt?: 
     recent = sim.drainEvents();
     for (const e of recent) {
       r.events.push(e);
-      if (e.type === 'takeoff' && r.lipSpeed === 0) r.lipSpeed = e.speed;
-      if (e.type === 'landing') {
-        if (landings === 0) r.approach = e.result;
-        else r.final = e.result;
-        landings++;
-      }
+      if (e.type === 'landing') r.final = e.result;
       if (e.type === 'crash') r.crash = e.reason;
     }
     if (sim.snapshot.prompt) {
@@ -166,7 +147,7 @@ async function playWrapped(pilot: Autopilot, wrap: Wrap, opts: { firstAttempt?: 
 const pilot = (o: L3PilotOptions = {}) => createL3Pilot(G, o);
 const q = (r: Run) => (r.phase === 'complete' ? (r.final?.quality ?? '?') : `✗ ${r.crash ?? r.phase}`);
 const fmtRun = (r: Run) =>
-  `${q(r).padEnd(16)} lip ${r.lipSpeed.toFixed(1)} rel ${r.releaseSpeed.toFixed(1)} m/s` +
+  `${q(r).padEnd(16)} rel ${r.releaseSpeed.toFixed(1)} m/s` +
   (r.final ? ` | land ${r.final.angleDeg.toFixed(0)}° ${r.final.impactSpeed.toFixed(1)} m/s air ${r.final.airTime.toFixed(2)} s` : '') +
   (r.result ? ` | ${r.result.score} ${r.result.medal}` : '');
 
@@ -255,7 +236,7 @@ describe('Level 3 — The Inverted Ramp', () => {
     expect(LEVEL_3.id).toBe(3);
     expect(LEVEL_3.theme).toBe('night');
     expect(LEVEL_3.vacuumEnabled).toBe(true);
-    expect(LEVEL_3.objectives.map((o) => o.id)).toEqual(['l3-jump', 'l3-vacuum', 'l3-inverted', 'l3-release', 'l3-land']);
+    expect(LEVEL_3.objectives.map((o) => o.id)).toEqual(['l3-run', 'l3-vacuum', 'l3-inverted', 'l3-release', 'l3-land']);
     for (const o of LEVEL_3.objectives) {
       expect(o.title).toBe(o.title.toUpperCase());
       for (const h of o.hints) expect(h.actions?.length).toBeGreaterThan(0);
@@ -271,7 +252,7 @@ describe('Level 3 — The Inverted Ramp', () => {
     // kill plane well above the night cloud sea, below every drivable surface
     const cloudTop = THEMES.night.clouds.seaTop;
     expect(LEVEL_3.killY).toBeGreaterThan(cloudTop + 100);
-    const lowest = Math.min(...[G.runway, G.kicker, G.deck, G.crescent, G.hill].flat().map((f) => f.position.y), G.arena.topY);
+    const lowest = Math.min(...[G.runway, G.deck, G.crescent, G.hill].flat().map((f) => f.position.y), G.arena.topY);
     expect(LEVEL_3.killY).toBeLessThan(lowest - 30);
     // the decor-free physics world builds quickly
     const t0 = performance.now();
@@ -287,8 +268,7 @@ describe('Level 3 — The Inverted Ramp', () => {
     const b = await play(level3Pilot());
     log(`[L3] reference: ${fmtRun(a)} | time ${a.result?.time.toFixed(2)} s`);
     expect(a.phase).toBe('complete');
-    expect(ofType(a.events, 'objectiveComplete').map((e) => e.id)).toEqual(['l3-jump', 'l3-vacuum', 'l3-inverted', 'l3-release', 'l3-land']);
-    expect(a.approach?.quality).toMatch(/perfect|clean/);
+    expect(ofType(a.events, 'objectiveComplete').map((e) => e.id)).toEqual(['l3-run', 'l3-vacuum', 'l3-inverted', 'l3-release', 'l3-land']);
     expect(a.final?.quality).toBe('perfect');
     expect(a.final?.tricks.some((t) => t.kind === 'inverted')).toBe(true);
     expect(a.result!.stats.invertedDistance).toBeGreaterThan(G.beamLength * 0.75);
@@ -344,30 +324,20 @@ describe('Level 3 — The Inverted Ramp', () => {
     expect(atLeastClean).toBeGreaterThanOrEqual(10);
   });
 
-  it('(c) run-up speed sweep — holding W the whole time works; slower run-ups down to ≈ 27 m/s at the lip', async () => {
-    const speeds = [22, 24, 26, 28, 30, 34, 38, 75]; // 75 = W held (full throttle)
+  it('(c) road speed sweep — holding W the whole time works; so does a slow road speed (the crescent is climbed on the vacuum)', async () => {
+    const speeds = [14, 18, 22, 26, 30, 38, 75]; // 75 = W held (full throttle)
     const runs: Run[] = [];
     for (const s of speeds) runs.push(await play(pilot({ runSpeed: s === 75 ? 'hold' : s })));
-    log(`[L3] run-up sweep:\n  ${speeds.map((s, i) => `${s === 75 ? 'W held' : `${s} m/s`}: ${fmtRun(runs[i])}`).join('\n  ')}`);
+    log(`[L3] road speed sweep:\n  ${speeds.map((s, i) => `${s === 75 ? 'W held' : `${s} m/s`}: ${fmtRun(runs[i])}`).join('\n  ')}`);
     const w = window(speeds, runs, (r) => r.phase === 'complete');
-    log(`[L3] run-up window (target speed): ${w?.[0]}..${w?.[1] === 75 ? 'W held' : w?.[1]} (lip ${runs[speeds.indexOf(w![0])].lipSpeed.toFixed(1)}..${runs[speeds.indexOf(w![1])].lipSpeed.toFixed(1)} m/s)`);
+    log(`[L3] road speed window (target speed): ${w?.[0]}..${w?.[1] === 75 ? 'W held' : w?.[1]}`);
     expect(runs[runs.length - 1].phase).toBe('complete'); // W held
     expect(w![1]).toBe(75);
-    expect(runs[speeds.indexOf(w![0])].lipSpeed).toBeLessThan(28);
-    for (const r of runs.filter((x) => x.phase === 'complete')) expect(r.approach?.quality).toMatch(/perfect|clean/);
+    expect(w![0]).toBeLessThanOrEqual(26);
   });
 
-  it('(c) thrust rescues slow run-ups and adjusts the release flight', async () => {
+  it('(c) thrust adjusts the release flight', async () => {
     const lines: string[] = [];
-    // aerial approach: 22–24 m/s at the lip falls short without thrust, a short burn clears the void
-    for (const rs of [22, 24]) {
-      const none = await play(pilot({ runSpeed: rs }));
-      const burns: Run[] = [];
-      for (const d of [0.4, 0.8, 1.2]) burns.push(await play(pilot({ runSpeed: rs, jumpThrust: { start: 0.1, duration: d } })));
-      lines.push(`run ${rs} m/s: no thrust ${q(none)} | burn 0.4/0.8/1.2 s: ${burns.map(q).join(' / ')}`);
-      expect(none.phase).toBe('crashed');
-      expect(burns.filter((r) => r.phase === 'complete').length).toBeGreaterThanOrEqual(2);
-    }
     // release flight: thrust after the car has flipped upright pushes it along the slope (softer)
     const grid: string[] = [];
     let ok = 0;
@@ -451,12 +421,6 @@ describe('Level 3 — The Inverted Ramp', () => {
 
   it('(d) failures behave sensibly', async () => {
     const lines: string[] = [];
-    const cloudTop = THEMES.night.clouds.seaTop;
-    // no throttle on the run-up: falls short into the void → 'fell' far above the cloud sea
-    const coast = await play(pilot({ runSpeed: 17 }));
-    lines.push(`coasting run-up: ${fmtRun(coast)} at y ${coast.crashY.toFixed(0)}`);
-    expect(coast.crash).toBe('fell');
-    expect(coast.crashY).toBeGreaterThan(cloudTop + 100);
     // no vacuum: the car cannot stay on the wall (never reaches the beam) and crashes
     const noVac = await play(pilot({ vacuumLead: -10_000 }));
     lines.push(`no vacuum: ${fmtRun(noVac)}`);
@@ -517,21 +481,18 @@ describe('Level 3 — The Inverted Ramp', () => {
     expect(again.minPromptScale).toBe(1);
   });
 
-  it('medals: completion → bronze, clean typical run → silver, PERFECT (+ tricks) → gold', async () => {
+  it('medals: completion → bronze, clean typical run → silver, PERFECT → gold', async () => {
     const hard = await play(pilot({ beamSpeed: 24 }));
     const clean = await play(pilot({ beamSpeed: 36 }));
     const slowClean = await play(pilot({ climbSpeed: 16, beamSpeed: 40 }));
     const perfect = await play(pilot());
-    const skilled = await play(pilot({ backflips: 1 }));
     const m = LEVEL_3.medals;
     log(
-      `[L3] medals ${m.bronze}/${m.silver}/${m.gold}: hard ${hard.result?.score} ${hard.result?.medal} (${q(hard)}), clean ${clean.result?.score} ${clean.result?.medal}, slow clean ${slowClean.result?.score} ${slowClean.result?.medal}, perfect ${perfect.result?.score} ${perfect.result?.medal}, backflip+perfect ${skilled.result?.score} ${skilled.result?.medal}`,
+      `[L3] medals ${m.bronze}/${m.silver}/${m.gold}: hard ${hard.result?.score} ${hard.result?.medal} (${q(hard)}), clean ${clean.result?.score} ${clean.result?.medal}, slow clean ${slowClean.result?.score} ${slowClean.result?.medal}, perfect ${perfect.result?.score} ${perfect.result?.medal}`,
     );
     expect(hard.result?.medal).toBe('bronze');
     expect(clean.result?.medal).toBe('silver');
     expect(slowClean.result?.medal).toBe('silver');
     expect(perfect.result?.medal).toBe('gold');
-    expect(skilled.result?.medal).toBe('gold');
-    expect(skilled.result!.score).toBeGreaterThan(perfect.result!.score);
   });
 });

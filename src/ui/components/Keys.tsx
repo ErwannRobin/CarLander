@@ -120,8 +120,8 @@ const STICK_ITEMS = {
 } as const;
 
 const TOUCH_ITEMS: Record<ControlAction, Omit<TouchItem, 'key'>> = {
-  accelerate: { icon: 'gas', label: 'Gas button' },
-  brake: { icon: 'brake', label: 'Brake button' },
+  accelerate: { icon: 'gas', label: 'Tip the phone forward' },
+  brake: { icon: 'brake', label: 'Tip the phone back' },
   left: { icon: 'tilt', text: '←', label: 'Tilt left' },
   right: { icon: 'tilt', text: '→', label: 'Tilt right' },
   rollLeft: { icon: 'rollLeft', label: 'Roll left button' },
@@ -135,8 +135,8 @@ const TOUCH_ITEMS: Record<ControlAction, Omit<TouchItem, 'key'>> = {
 };
 
 /**
- * Touch hint items; opposing directions merge into one item. `tilt`: the phone steers and the
- * pedals drive; otherwise the floating stick does both.
+ * Touch hint items; opposing directions merge into one item. `tilt`: the phone steers and its
+ * forward / back tilt is gas / brake; otherwise the floating stick does both.
  */
 export function touchItems(actions: readonly ControlAction[], tilt = true): TouchItem[] {
   const out: TouchItem[] = [];
@@ -144,7 +144,7 @@ export function touchItems(actions: readonly ControlAction[], tilt = true): Touc
   if (actions.includes('accelerate') && actions.includes('brake')) {
     out.push(
       tilt
-        ? { key: 'pitch', icon: 'gas', text: '↕', label: 'Gas or brake button' }
+        ? { key: 'pitch', icon: 'gas', text: '↕', label: 'Tip the phone forward for gas, back for brake' }
         : { key: 'pitch', icon: 'stick', text: '↑↓', label: 'Stick up or down' },
     );
     skip.add('accelerate').add('brake');

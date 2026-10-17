@@ -771,6 +771,74 @@
 }
 
 /* ------------------------------------------------------------------ */
+/* Start countdown                                                     */
+/* ------------------------------------------------------------------ */
+
+.rf-countdown {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.rf-countdown__num {
+  display: grid;
+  place-items: center;
+  width: calc(var(--rf-u) * 170);
+  height: calc(var(--rf-u) * 170);
+  border-radius: 50%;
+  border: 1px solid var(--rf-line-3);
+  background: radial-gradient(circle at 50% 35%, rgba(36, 40, 45, 0.78), rgba(12, 14, 17, 0.86));
+  -webkit-backdrop-filter: var(--rf-glass-filter);
+  backdrop-filter: var(--rf-glass-filter);
+  box-shadow:
+    inset 0 1px 0 var(--rf-hi),
+    0 0 calc(var(--rf-u) * 46) rgba(56, 232, 255, 0.28);
+  font: 400 calc(var(--rf-u) * 96) / 1 var(--rf-display);
+  color: var(--rf-ink);
+  animation: rf-countdown-pop 1s var(--rf-ease) both;
+}
+.rf-countdown__num[data-go] {
+  font-size: calc(var(--rf-u) * 62);
+  letter-spacing: 0.08em;
+  text-indent: 0.08em;
+  color: var(--rf-cyan-glow);
+  animation: rf-countdown-go 800ms var(--rf-ease) both;
+}
+@keyframes rf-countdown-pop {
+  0% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+  18% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+    transform: scale(0.9);
+  }
+}
+@keyframes rf-countdown-go {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  20% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.5);
+  }
+}
+
+/* ------------------------------------------------------------------ */
 /* Landing banner                                                      */
 /* ------------------------------------------------------------------ */
 

@@ -246,10 +246,10 @@ edges**, supported by a **steel lattice truss tower** behind it. Profile: horizo
 vertical wall → **overhang that curves past vertical into an inverted section at the top** (C / wave shape).
 In the video the car climbs it, reaches the inverted top, detaches, fires **blue cold-gas RCS jets** to
 flip upright while falling, and lands in a huge cloud of smoke.
-Game version (monumental scale, ~60–80 m tall): start runway → jump across a void (aerial approach) onto a
-landing deck aligned with the crescent entry (cyan guide chevrons) → HOLD ENTER: vacuum engages on the
+Game version (monumental scale, ~60–80 m tall): start runway → straight, flat arena road aligned with the
+crescent entry (cyan guide chevrons; no jump) → HOLD ENTER: vacuum engages on the
 quarter pipe → climb the vertical wall → overhang → an extended **inverted beam** (the red-lit truss arm,
-≈ 80–140 m, gently curving sideways) driven upside down → a marked RELEASE zone near its end → release Enter
+≈ 80–140 m, straight) driven upside down → a marked RELEASE zone near its end → release Enter
 → fall/fly inverted → reorient (Q/E roll or SHIFT) with blue RCS puffs → thrust to adjust → land on a
 **distant platform** with a ski-jump landing hill → finish. Must be completable through input in headless
 autopilot tests.
@@ -300,12 +300,19 @@ the pause menu), the objective title, the score number, a fuel bar with the spee
 airborne altitude + the attitude dial; prompts, trick feed and the landing verdict stay. The phone is the
 steering wheel (`src/input/gyro.ts`): the wheel angle is the rotation about the screen normal, read from the
 direction of gravity in the device frame (any screen orientation, no gimbal flip; ±32° = full lock) and
-merged into the steer axis. Left thumb: BRAKE and GAS pedals (pitch up / down in the air). Right thumb:
+merged into the steer axis. The same sensor gives gas and brake: the screen's tilt away from vertical, relative to the pose
+captured by `calibrateTilt()` when the 3-2-1 reaches GO, drives `touchInput.tiltThrottle` (tip forward = gas, back =
+brake, pitch down / up in the air); a small meter under the left thumb shows it and a tap on it recentres. Right thumb:
 THRUST and JUMP; above them VACUUM (levels that have it) and, only while airborne, STABILIZE and ROLL L / R.
 Dragging a finger over the scene orbits the chase camera (`cameraLook`, applied by `CameraRig`), which drifts
-back behind the car 2 s after release (a tap recenters at once). Without a tilt sensor (desktop, an http page: the
-browsers deliver the sensor on secure contexts only), after a refusal (iOS asks on the first tap), or with
-Settings → Tilt steering off, a floating stick steers and drives instead.
+back behind the car 2 s after release; pinching zooms the boom (`cameraLook.zoom`, kept), and a tap resets both.
+Without a tilt sensor (desktop, an http page: the browsers deliver the sensor on secure contexts only), after a
+refusal (iOS asks when Play is pressed, `requestGyro()`), or with Settings → Tilt controls off, a small floating
+stick steers and drives instead. The title / level-select scene takes drag (orbit) and pinch / wheel (zoom) on the canvas.
+
+**Start countdown.** `GameRunner` holds the sim at the line for 3-2-1 on every (re)start (1 s per number on a level's first
+start, 0.65 s on retries; `?nocountdown=1` disables it) and reports each step through `onCountdown` →
+`useCountdownStore` → `<Countdown/>` in the HUD; the sim only steps once GO is reached.
 
 ## 12. Controls
 
@@ -324,4 +331,4 @@ Settings → Tilt steering off, a floating stick steers and drives instead.
 
 Gamepad (bonus): left stick steer/pitch, RT accelerate, LT brake, A thrust, B vertical booster, RB vacuum, LB stabilize, X-Y roll.
 
-Touch: tilt the phone to steer, GAS / BRAKE, THRUST, JUMP, VACUUM, STABILIZE and ROLL buttons, drag to look around.
+Touch: tilt the phone to steer and tip it for gas / brake (stick fallback), THRUST, JUMP, VACUUM, STABILIZE and ROLL buttons, drag to look around.

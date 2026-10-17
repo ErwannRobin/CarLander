@@ -164,7 +164,7 @@ export class InputManager {
       stabilize ||= p.stabilize;
 
       if (touchInput.active) {
-        throttle += touchInput.throttle;
+        throttle += touchInput.throttle + touchInput.tiltThrottle;
         steer += touchInput.steer + touchInput.tilt;
         roll += touchInput.roll;
         boost ||= touchInput.boost;

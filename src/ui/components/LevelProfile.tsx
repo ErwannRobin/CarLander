@@ -59,14 +59,12 @@ function Level3() {
         <line x1="282" y1="10" x2="282" y2={CLOUD_Y} />
         <path d="M270 16 L282 28 L270 40 L282 52 L270 64 L282 76 L270 88" />
       </g>
-      <Pylons xs={[[136, 78], [176, 78], [24, 58], [70, 52]]} />
-      {/* aerial approach: start runway, kicker, the void, onto the arena deck */}
-      <path className="rf-profile__track" d="M64 82 H98 C103 82 106 80 109 77" />
-      <path className="rf-profile__path" d="M109 77 Q114 72 121 78" />
-      {/* deck → quarter pipe → vertical wall → overhang curling back into the inverted beam */}
+      <Pylons xs={[[24, 58], [70, 52], [112, 78], [160, 78]]} />
+      {/* one straight road: start runway and arena deck, no jump, up the quarter pipe → vertical wall →
+          overhang curling back into the inverted beam */}
       <path
         className="rf-profile__track"
-        d="M120 78 H206 C236 78 256 66 260 44 C263 28 260 16 248 10 C220 5 180 5 150 8"
+        d="M80 78 H206 C236 78 256 66 260 44 C263 28 260 16 248 10 C220 5 180 5 150 8"
       />
       <path className="rf-profile__led" d="M248 6.4 C220 1.6 180 1.6 150 4.6" />
       <line className="rf-profile__release" x1="150" y1="2" x2="150" y2="13" />
