@@ -1,0 +1,201 @@
+/* On-screen touch controls (coarse pointers). Quiet until touched. */
+
+.rf-touch {
+  z-index: 30;
+  transition: opacity var(--rf-t2) var(--rf-ease);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.rf-touch[data-disabled] {
+  opacity: 0;
+}
+
+/* ------------------------------------------------------------------ */
+/* Stick                                                               */
+/* ------------------------------------------------------------------ */
+
+.rf-stick-zone {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 46%;
+  height: 62%;
+  pointer-events: auto;
+  touch-action: none;
+}
+.rf-stick {
+  position: absolute;
+  left: calc(var(--rf-pad-l) + var(--rf-u) * 8);
+  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 8);
+  width: calc(var(--rf-u) * 136);
+  height: calc(var(--rf-u) * 136);
+  border-radius: 50%;
+  opacity: 0.72;
+  transition:
+    transform 180ms var(--rf-ease),
+    opacity 180ms var(--rf-ease);
+}
+.rf-stick[data-active] {
+  opacity: 1;
+  transition: opacity 120ms var(--rf-ease);
+}
+.rf-stick__ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(241, 237, 230, 0.34);
+  background: radial-gradient(circle, rgba(14, 16, 19, 0.1) 0%, rgba(14, 16, 19, 0.34) 62%, rgba(14, 16, 19, 0.52) 100%);
+  box-shadow:
+    inset 0 0 0 calc(var(--rf-u) * 10) rgba(14, 16, 19, 0.12),
+    0 10px 30px -18px rgba(0, 0, 0, 0.7);
+}
+.rf-stick__ticks {
+  /* four hairline ticks at N / E / S / W */
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(from -2deg, rgba(241, 237, 230, 0.55) 0 4deg, transparent 4deg 90deg);
+  -webkit-mask: radial-gradient(circle, transparent 84%, #000 85%);
+  mask: radial-gradient(circle, transparent 84%, #000 85%);
+}
+.rf-stick__knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 42%;
+  height: 42%;
+  margin: -21% 0 0 -21%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 34%, #fbf9f5, #d6d0c6);
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.42),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.16);
+  transition: transform 140ms var(--rf-ease);
+}
+.rf-stick[data-active] .rf-stick__knob {
+  transition: none;
+}
+
+/* ------------------------------------------------------------------ */
+/* Button cluster (right thumb arc)                                    */
+/* ------------------------------------------------------------------ */
+
+.rf-touch__buttons {
+  position: absolute;
+  right: calc(var(--rf-pad-r) + var(--rf-u) * 2);
+  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 2);
+  width: calc(var(--rf-u) * 206);
+  height: calc(var(--rf-u) * 168);
+}
+.rf-tbtn {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--rf-u) * 3);
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(241, 237, 230, 0.34);
+  background: radial-gradient(circle at 50% 30%, rgba(40, 44, 50, 0.62), rgba(12, 14, 17, 0.78));
+  box-shadow:
+    inset 0 1px 0 rgba(241, 237, 230, 0.12),
+    0 10px 26px -16px rgba(0, 0, 0, 0.7);
+  color: var(--rf-ink);
+  pointer-events: auto;
+  touch-action: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    transform 90ms var(--rf-ease),
+    background-color 120ms var(--rf-ease),
+    border-color 120ms var(--rf-ease),
+    box-shadow 160ms var(--rf-ease);
+}
+.rf-tbtn__icon {
+  width: 42%;
+  height: 42%;
+  pointer-events: none;
+}
+.rf-tbtn__label {
+  font: 600 max(7.5px, calc(var(--rf-u) * 8.5)) / 1 var(--rf-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rf-ink-2);
+  pointer-events: none;
+}
+.rf-tbtn[data-pressed] {
+  transform: scale(0.93);
+  border-color: rgba(241, 237, 230, 0.75);
+  background: rgba(241, 237, 230, 0.2);
+}
+.rf-tbtn--thrust {
+  right: 0;
+  bottom: 0;
+  width: calc(var(--rf-u) * 96);
+  height: calc(var(--rf-u) * 96);
+  border-color: rgba(255, 122, 28, 0.65);
+  box-shadow: inset 0 0 0 calc(var(--rf-u) * 4) rgba(255, 122, 28, 0.12);
+}
+.rf-tbtn--thrust .rf-tbtn__icon {
+  width: 34%;
+  height: 34%;
+  color: var(--rf-orange-hot);
+}
+.rf-tbtn--thrust .rf-tbtn__label {
+  font-size: max(8.5px, calc(var(--rf-u) * 10));
+  color: var(--rf-orange-hot);
+}
+.rf-tbtn--thrust[data-pressed] {
+  border-color: var(--rf-orange);
+  background: rgba(255, 122, 28, 0.34);
+  box-shadow: 0 0 30px -4px rgba(255, 122, 28, 0.85);
+}
+.rf-tbtn--thrust[data-pressed] .rf-tbtn__label,
+.rf-tbtn--thrust[data-pressed] .rf-tbtn__icon {
+  color: var(--rf-ink);
+}
+.rf-tbtn--stabilize {
+  right: calc(var(--rf-u) * 110);
+  bottom: 0;
+  width: calc(var(--rf-u) * 66);
+  height: calc(var(--rf-u) * 66);
+}
+.rf-tbtn--vacuum {
+  right: calc(var(--rf-u) * 136);
+  bottom: calc(var(--rf-u) * 80);
+  width: calc(var(--rf-u) * 66);
+  height: calc(var(--rf-u) * 66);
+  border-color: rgba(56, 232, 255, 0.55);
+}
+.rf-tbtn--vacuum .rf-tbtn__label,
+.rf-tbtn--vacuum .rf-tbtn__icon {
+  color: var(--rf-cyan-glow);
+}
+.rf-tbtn--vacuum[data-pressed] {
+  border-color: var(--rf-cyan);
+  background: rgba(56, 232, 255, 0.24);
+  box-shadow: 0 0 26px -4px rgba(56, 232, 255, 0.85);
+}
+.rf-tbtn--roll-l .rf-tbtn__label,
+.rf-tbtn--roll-r .rf-tbtn__label {
+  display: none;
+}
+.rf-tbtn--roll-l .rf-tbtn__icon,
+.rf-tbtn--roll-r .rf-tbtn__icon {
+  width: 50%;
+  height: 50%;
+}
+.rf-tbtn--roll-l,
+.rf-tbtn--roll-r {
+  bottom: calc(var(--rf-u) * 108);
+  width: calc(var(--rf-u) * 56);
+  height: calc(var(--rf-u) * 56);
+}
+.rf-tbtn--roll-l {
+  right: calc(var(--rf-u) * 66);
+}
+.rf-tbtn--roll-r {
+  right: 0;
+}

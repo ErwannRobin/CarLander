@@ -1,0 +1,444 @@
+/*
+ * ROADSTER FLIGHT — UI tokens and shared primitives.
+ *
+ * Sizing: everything is expressed in --rf-u, a unit that equals 1px at 720p and scales with
+ * the short edge of the viewport (clamped for phones and 4K). Text sizes have px floors so
+ * they stay legible on phones.
+ *
+ * Color roles: warm white = primary ink, titanium = secondary ink + hairlines, graphite glass =
+ * panels, cyan = live / active / good, orange = thrust & fuel only, amber = warning,
+ * red = crash & danger only.
+ */
+@import '@fontsource/jetbrains-mono/300.css';
+
+:root {
+  --rf-u: clamp(0.86px, calc(100vmin / 720), 3px);
+
+  /* ink */
+  --rf-ink: #f1ede6;
+  --rf-ink-2: #c6cbd1;
+  --rf-ink-3: #a3aab2;
+  --rf-ink-4: #7d848d;
+  --rf-graphite: #121417;
+
+  /* hairlines + glass */
+  --rf-line: rgba(198, 203, 209, 0.16);
+  --rf-line-2: rgba(198, 203, 209, 0.3);
+  --rf-line-3: rgba(198, 203, 209, 0.5);
+  --rf-hi: rgba(241, 237, 230, 0.1);
+  --rf-glass: rgba(17, 19, 23, 0.7);
+  --rf-glass-2: rgba(15, 17, 20, 0.84);
+  --rf-glass-filter: blur(18px) saturate(1.15) brightness(0.68);
+
+  /* signal colors */
+  --rf-cyan: #38e8ff;
+  --rf-cyan-deep: #0bb4d4;
+  --rf-cyan-glow: #7ff3ff;
+  --rf-orange: #ff7a1c;
+  --rf-orange-hot: #ffb36b;
+  --rf-amber: #ffb020;
+  --rf-red: #ff2b3d;
+  --rf-red-soft: #ff5a66;
+
+  /* medal metals */
+  --rf-gold: #e2c27c;
+  --rf-gold-dark: #8a6a2c;
+  --rf-silver: #d4d9df;
+  --rf-silver-dark: #6d747d;
+  --rf-bronze: #c88d62;
+  --rf-bronze-dark: #6f4325;
+
+  /* type */
+  --rf-display: 'Michroma', 'Inter Variable', system-ui, sans-serif;
+  --rf-sans: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --rf-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --rf-fs-2xs: max(10px, calc(var(--rf-u) * 10.5));
+  --rf-fs-xs: max(10.5px, calc(var(--rf-u) * 11.5));
+  --rf-fs-sm: max(11.5px, calc(var(--rf-u) * 12.5));
+  --rf-fs-base: max(12.5px, calc(var(--rf-u) * 14));
+  --rf-fs-md: max(13.5px, calc(var(--rf-u) * 16));
+  --rf-fs-lg: max(15px, calc(var(--rf-u) * 20));
+  --rf-fs-xl: max(17px, calc(var(--rf-u) * 26));
+  --rf-fs-2xl: max(20px, calc(var(--rf-u) * 34));
+  --rf-fs-3xl: max(24px, calc(var(--rf-u) * 44));
+  --rf-fs-4xl: max(28px, calc(var(--rf-u) * 58));
+
+  /* motion */
+  --rf-ease: cubic-bezier(0.2, 0.75, 0.2, 1);
+  --rf-ease-io: cubic-bezier(0.65, 0, 0.35, 1);
+  --rf-t1: 140ms;
+  --rf-t2: 240ms;
+  --rf-t3: 460ms;
+
+  /* layout */
+  --rf-edge: max(14px, calc(var(--rf-u) * 24));
+  --rf-safe-t: env(safe-area-inset-top, 0px);
+  --rf-safe-r: env(safe-area-inset-right, 0px);
+  --rf-safe-b: env(safe-area-inset-bottom, 0px);
+  --rf-safe-l: env(safe-area-inset-left, 0px);
+  --rf-pad-t: calc(var(--rf-edge) + var(--rf-safe-t));
+  --rf-pad-r: calc(var(--rf-edge) + var(--rf-safe-r));
+  --rf-pad-b: calc(var(--rf-edge) + var(--rf-safe-b));
+  --rf-pad-l: calc(var(--rf-edge) + var(--rf-safe-l));
+}
+
+/* ------------------------------------------------------------------ */
+/* Layers                                                              */
+/* ------------------------------------------------------------------ */
+
+.rf-root {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10;
+  font-family: var(--rf-sans);
+  color: var(--rf-ink);
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.rf-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  font-family: var(--rf-sans);
+  color: var(--rf-ink);
+}
+.rf-layer button,
+.rf-layer a,
+.rf-layer input,
+.rf-layer [data-interactive] {
+  pointer-events: auto;
+}
+
+/* ------------------------------------------------------------------ */
+/* Glass                                                               */
+/* ------------------------------------------------------------------ */
+
+.rf-glass {
+  background: linear-gradient(180deg, rgba(40, 44, 50, 0.42), rgba(14, 16, 19, 0.5)), var(--rf-glass);
+  -webkit-backdrop-filter: var(--rf-glass-filter);
+  backdrop-filter: var(--rf-glass-filter);
+  border: 1px solid var(--rf-line);
+  box-shadow:
+    inset 0 1px 0 var(--rf-hi),
+    0 18px 40px -24px rgba(0, 0, 0, 0.6);
+}
+
+/* Low quality: no backdrop blur anywhere (it re-samples the canvas every frame); surfaces get
+   more opaque instead so text stays legible. */
+.rf-root[data-quality='low'] *,
+.rf-root[data-quality='low'] *::before {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.rf-root[data-quality='low'] .rf-glass,
+.rf-root[data-quality='low'] .rf-iconbtn {
+  background: rgba(17, 19, 22, 0.86);
+}
+/* Phones and tablets default to medium: treat it like low here, mobile GPUs pay the most for blur. */
+@media (pointer: coarse) {
+  .rf-root[data-quality='medium'] *,
+  .rf-root[data-quality='medium'] *::before {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+  }
+  .rf-root[data-quality='medium'] .rf-glass,
+  .rf-root[data-quality='medium'] .rf-iconbtn {
+    background: rgba(17, 19, 22, 0.86);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Buttons                                                             */
+/* ------------------------------------------------------------------ */
+
+.rf-btn {
+  --btn-h: max(40px, calc(var(--rf-u) * 44));
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--rf-u) * 10);
+  min-height: var(--btn-h);
+  padding: 0 calc(var(--rf-u) * 20);
+  border: 1px solid var(--rf-line-2);
+  border-radius: calc(var(--rf-u) * 3);
+  background: rgba(241, 237, 230, 0.04);
+  color: var(--rf-ink);
+  font: 500 var(--rf-fs-base) / 1 var(--rf-sans);
+  letter-spacing: 0.005em;
+  cursor: pointer;
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  transition:
+    background-color var(--rf-t1) var(--rf-ease),
+    border-color var(--rf-t1) var(--rf-ease),
+    color var(--rf-t1) var(--rf-ease),
+    transform var(--rf-t1) var(--rf-ease),
+    box-shadow var(--rf-t2) var(--rf-ease);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.rf-btn:hover {
+  background: rgba(241, 237, 230, 0.09);
+  border-color: var(--rf-line-3);
+}
+.rf-btn:active {
+  transform: translateY(1px);
+}
+.rf-btn:disabled,
+.rf-btn[aria-disabled='true'] {
+  cursor: default;
+  color: var(--rf-ink-4);
+  border-color: var(--rf-line);
+  background: transparent;
+  transform: none;
+}
+
+.rf-btn:focus-visible {
+  outline: 1.5px solid var(--rf-cyan);
+  outline-offset: 4px;
+}
+.rf-btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Primary: warm-white machined slab, Michroma, tracked. */
+.rf-btn--primary {
+  --btn-h: max(46px, calc(var(--rf-u) * 54));
+  padding: 0 calc(var(--rf-u) * 30);
+  border-color: transparent;
+  background: linear-gradient(180deg, #f6f3ee, #e4dfd6);
+  color: var(--rf-graphite);
+  font: 400 var(--rf-fs-sm) / 1 var(--rf-display);
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.12),
+    0 14px 34px -14px rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.rf-btn--primary::after {
+  /* cyan hairline that draws in on hover/focus — the one accent on the slab */
+  content: '';
+  position: absolute;
+  left: calc(var(--rf-u) * 14);
+  right: calc(var(--rf-u) * 14);
+  bottom: calc(var(--rf-u) * 7);
+  height: 2px;
+  background: var(--rf-cyan-deep);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--rf-t2) var(--rf-ease);
+}
+.rf-btn--primary:hover {
+  background: linear-gradient(180deg, #ffffff, #ece7df);
+  border-color: transparent;
+}
+.rf-btn--primary:hover::after,
+.rf-btn--primary:focus-visible::after {
+  transform: scaleX(1);
+}
+.rf-btn--primary .rf-keycap {
+  color: var(--rf-graphite);
+  background: rgba(18, 20, 23, 0.06);
+  border-color: rgba(18, 20, 23, 0.22);
+  font-family: var(--rf-sans);
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.rf-btn--primary:focus-visible {
+  outline-color: rgba(56, 232, 255, 0.8);
+}
+
+/* Quiet: text-only, used for back / tertiary actions. */
+.rf-btn--quiet {
+  border-color: transparent;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  color: var(--rf-ink-2);
+  padding: 0 calc(var(--rf-u) * 12);
+}
+.rf-btn--quiet:hover {
+  background: rgba(241, 237, 230, 0.06);
+  border-color: transparent;
+  color: var(--rf-ink);
+}
+
+/* Round icon button (HUD). */
+.rf-iconbtn {
+  --size: max(34px, calc(var(--rf-u) * 36));
+  display: inline-grid;
+  place-items: center;
+  width: var(--size);
+  height: var(--size);
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--rf-line-2);
+  color: var(--rf-ink);
+  background: var(--rf-glass);
+  -webkit-backdrop-filter: var(--rf-glass-filter);
+  backdrop-filter: var(--rf-glass-filter);
+  box-shadow: inset 0 1px 0 var(--rf-hi);
+  cursor: pointer;
+  transition:
+    background-color var(--rf-t1) var(--rf-ease),
+    border-color var(--rf-t1) var(--rf-ease),
+    transform var(--rf-t1) var(--rf-ease);
+  touch-action: manipulation;
+}
+.rf-iconbtn:hover {
+  border-color: var(--rf-line-3);
+  background-color: rgba(40, 44, 50, 0.72);
+}
+.rf-iconbtn:active {
+  transform: scale(0.94);
+}
+.rf-iconbtn:focus-visible {
+  outline: 1.5px solid var(--rf-cyan);
+  outline-offset: 3px;
+}
+.rf-iconbtn svg {
+  width: 44%;
+  height: 44%;
+}
+@media (pointer: coarse) {
+  .rf-iconbtn {
+    --size: max(44px, calc(var(--rf-u) * 44));
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Key caps                                                            */
+/* ------------------------------------------------------------------ */
+
+.rf-keycap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: max(20px, calc(var(--rf-u) * 22));
+  height: max(20px, calc(var(--rf-u) * 22));
+  padding: 0 calc(var(--rf-u) * 6);
+  border: 1px solid rgba(241, 237, 230, 0.3);
+  border-bottom-width: 2px;
+  border-radius: calc(var(--rf-u) * 4);
+  background: linear-gradient(180deg, rgba(241, 237, 230, 0.16), rgba(241, 237, 230, 0.05));
+  color: var(--rf-ink);
+  font: 600 var(--rf-fs-2xs) / 1 var(--rf-sans);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  font-feature-settings: 'tnum';
+}
+.rf-keycap--lg {
+  min-width: max(28px, calc(var(--rf-u) * 34));
+  height: max(28px, calc(var(--rf-u) * 34));
+  padding: 0 calc(var(--rf-u) * 10);
+  border-radius: calc(var(--rf-u) * 6);
+  font-size: var(--rf-fs-sm);
+}
+.rf-keycap--empty {
+  color: var(--rf-ink-4);
+  border-style: dashed;
+  border-bottom-width: 1px;
+  background: transparent;
+}
+.rf-keys {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 4);
+}
+
+/* ------------------------------------------------------------------ */
+/* Text helpers                                                        */
+/* ------------------------------------------------------------------ */
+
+.rf-num {
+  font-family: var(--rf-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.rf-unit {
+  font-family: var(--rf-sans);
+  color: var(--rf-ink-3);
+  font-size: 0.62em;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  margin-left: 0.18em;
+}
+.rf-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Shared keyframes                                                    */
+/* ------------------------------------------------------------------ */
+
+@keyframes rf-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes rf-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--rf-u) * 10));
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes rf-track-in {
+  from {
+    opacity: 0;
+    letter-spacing: 0.6em;
+  }
+}
+@keyframes rf-draw-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/*
+ * Reduced motion: no movement, no looping. Durations collapse to ~0 but delays are kept where
+ * they time an exit (HUD feed / banners fade out after their lifetime); entry sequences on menu
+ * screens drop their delays so content appears at once.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .rf-root *,
+  .rf-root *::before,
+  .rf-root *::after,
+  .rf-layer *,
+  .rf-layer *::before,
+  .rf-layer *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    transition-delay: 0ms !important;
+  }
+  .rf-title *,
+  .rf-levels *,
+  .rf-complete *,
+  .rf-complete *::after,
+  .rf-pause *,
+  .rf-settings *,
+  .rf-boot * {
+    animation-delay: 0ms !important;
+  }
+}
