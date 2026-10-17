@@ -4,6 +4,7 @@
  */
 import { useLayoutEffect, useMemo, useRef, type Ref } from 'react';
 import type { LevelId, LevelProgress } from '@/game/types';
+import { requestGyro } from '@/input/gyro';
 import { useAppStore } from '@/state/appStore';
 import { LEVEL_IDS, useProgressStore } from '@/state/progressStore';
 import { Icon } from './components/Icon';
@@ -155,7 +156,9 @@ export function LevelSelect() {
   );
 
   const play = (id: LevelId) => {
-    if (levels[id].unlocked) startLevel(id);
+    if (!levels[id].unlocked) return;
+    requestGyro(); // no-op once answered; asks now if the title screen did not
+    startLevel(id);
   };
 
   return (

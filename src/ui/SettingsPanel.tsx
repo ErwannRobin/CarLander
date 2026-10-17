@@ -280,8 +280,8 @@ export function SettingsPanel() {
               />
               {coarse && (
                 <Switch
-                  label="Tilt steering"
-                  detail="Turn the phone like a steering wheel. Off: steer with an on-screen stick"
+                  label="Tilt controls"
+                  detail="Turn the phone like a wheel to steer, tip it forward for gas, back for brake. Off: use an on-screen stick"
                   checked={tiltSteering}
                   onChange={actions.setTiltSteering}
                 />

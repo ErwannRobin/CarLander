@@ -56,6 +56,41 @@ const wallMs = (): number => (typeof performance !== 'undefined' ? performance.n
  */
 const GESTURE_EVENTS = ['pointerdown', 'pointerup', 'touchend', 'click', 'keydown'] as const;
 
+/** iPhone / iPad (iPadOS reports itself as a Mac with a touch screen). */
+function isIOS(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  return /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+/** A tenth of a second of 8-bit mono silence as a WAV blob URL (for the silent-mode workaround below). */
+function silentWavUrl(): string | null {
+  try {
+    const rate = 8000;
+    const n = rate / 10;
+    const buf = new ArrayBuffer(44 + n);
+    const v = new DataView(buf);
+    const text = (at: number, str: string): void => {
+      for (let i = 0; i < str.length; i++) v.setUint8(at + i, str.charCodeAt(i));
+    };
+    text(0, 'RIFF');
+    v.setUint32(4, 36 + n, true);
+    text(8, 'WAVEfmt ');
+    v.setUint32(16, 16, true);
+    v.setUint16(20, 1, true); // PCM
+    v.setUint16(22, 1, true); // mono
+    v.setUint32(24, rate, true);
+    v.setUint32(28, rate, true);
+    v.setUint16(32, 1, true);
+    v.setUint16(34, 8, true);
+    text(36, 'data');
+    v.setUint32(40, n, true);
+    new Uint8Array(buf, 44).fill(128); // 8-bit PCM silence
+    return URL.createObjectURL(new Blob([buf], { type: 'audio/wav' }));
+  } catch {
+    return null;
+  }
+}
+
 /**
  * How long after a resume request one-shots may still be scheduled while the context is not yet
  * 'running' (it starts a few ms after a gesture-initiated resume). Bounded so sounds never pile up in a
@@ -74,6 +109,9 @@ export class AudioEngine {
   private muteTimer: ReturnType<typeof setTimeout> | null = null;
   private mix: AudioMix = { ...DEFAULT_MIX };
   private scene: AudioScene = 'title';
+  /** Silent <audio> loop that keeps iOS from muting Web Audio with the ringer switch (see allowSilentMode). */
+  private silentEl: HTMLAudioElement | null = null;
+  private disarmResume: (() => void) | null = null;
 
   /** True once unlock() has created the context (it may still be suspended). */
   get unlocked(): boolean {
@@ -119,6 +157,8 @@ export class AudioEngine {
       this.core.output.connect(this.ctx.destination);
       this.timer = setInterval(this.onTick, 40);
       if (typeof document !== 'undefined') document.addEventListener('visibilitychange', this.onVisibility);
+      this.allowSilentMode();
+      this.keepResumingOnGestures(this.ctx);
     }
     if (this.mix.muted) {
       // Integrations call unlock() on every gesture: arm the post-fade suspend once rather than pushing a
@@ -127,6 +167,54 @@ export class AudioEngine {
       return Promise.resolve();
     }
     return this.resume();
+  }
+
+  /**
+   * iPhones route Web Audio through the ringer switch: with the switch on silent, the whole game is mute.
+   * Declaring the page's audio as "playback" (Audio Session API, Safari 16.4+) lifts that; older iOS needs a
+   * silent <audio> element playing, which switches the page to the media category. Runs inside the unlock gesture.
+   */
+  private allowSilentMode(): void {
+    if (!isIOS() || typeof document === 'undefined') return;
+    const session = (navigator as unknown as { audioSession?: { type: string } }).audioSession;
+    if (session) {
+      try {
+        session.type = 'playback';
+        return;
+      } catch {
+        /* fall through to the element */
+      }
+    }
+    if (this.silentEl) return;
+    const url = silentWavUrl();
+    if (!url) return;
+    const el = document.createElement('audio');
+    el.src = url;
+    el.loop = true;
+    el.setAttribute('playsinline', '');
+    el.setAttribute('aria-hidden', 'true');
+    this.silentEl = el;
+    void el.play().catch(() => undefined);
+  }
+
+  /**
+   * Phones suspend or "interrupt" the context behind the game's back (a system prompt such as the motion
+   * sensor permission, a call, the app switcher) and only a fresh gesture can start it again: resume it on
+   * the next touch / click / key instead of leaving the game silent.
+   */
+  private keepResumingOnGestures(ctx: AudioContext): void {
+    if (typeof window === 'undefined') return;
+    this.disarmResume?.();
+    const handler = (): void => {
+      if (this.ctx !== ctx) return;
+      if (ctx.state !== 'running' && ctx.state !== 'closed') void this.resume();
+      const el = this.silentEl;
+      if (el && el.paused && !document.hidden) void el.play().catch(() => undefined);
+    };
+    for (const ev of GESTURE_EVENTS) window.addEventListener(ev, handler, { capture: true, passive: true });
+    this.disarmResume = () => {
+      for (const ev of GESTURE_EVENTS) window.removeEventListener(ev, handler, { capture: true });
+    };
   }
 
   /**
@@ -217,6 +305,13 @@ export class AudioEngine {
     if (this.muteTimer !== null) clearTimeout(this.muteTimer);
     this.muteTimer = null;
     this.disarmGestureUnlock();
+    this.disarmResume?.();
+    this.disarmResume = null;
+    if (this.silentEl) {
+      this.silentEl.pause();
+      URL.revokeObjectURL(this.silentEl.src);
+      this.silentEl = null;
+    }
     if (typeof document !== 'undefined') document.removeEventListener('visibilitychange', this.onVisibility);
     this.core?.dispose();
     this.core = null;
@@ -316,8 +411,13 @@ export class AudioEngine {
   private readonly onVisibility = (): void => {
     const ctx = this.ctx;
     if (!ctx || ctx.state === 'closed') return;
-    if (document.hidden) void ctx.suspend().catch(() => undefined);
-    else void this.resume();
+    if (document.hidden) {
+      this.silentEl?.pause();
+      void ctx.suspend().catch(() => undefined);
+    } else {
+      void this.silentEl?.play().catch(() => undefined);
+      void this.resume();
+    }
   };
 }
 

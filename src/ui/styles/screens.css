@@ -159,6 +159,13 @@
   margin-top: calc(var(--rf-u) * 36);
   animation: rf-rise-in 700ms 680ms var(--rf-ease) both;
 }
+.rf-title__hint {
+  margin: calc(var(--rf-u) * 14) 0 0;
+  font: 500 var(--rf-fs-xs) / 1.3 var(--rf-sans);
+  letter-spacing: 0.06em;
+  color: var(--rf-ink-3);
+  animation: rf-rise-in 700ms 820ms var(--rf-ease) both;
+}
 .rf-title__play {
   min-width: max(180px, calc(var(--rf-u) * 230));
   justify-content: space-between;

@@ -1,23 +1,24 @@
 /**
  * On-screen controls for coarse pointers.
  *
- *  - Steering: the phone itself (tilt it like a steering wheel, src/input/gyro.ts). GAS and BRAKE
- *    pedals sit under the left thumb (in the air they pitch the nose down / up).
- *    Without a usable tilt sensor (or with the setting off) a floating left thumb stick steers and
- *    drives instead.
+ *  - Driving: the phone itself (src/input/gyro.ts). Turn it like a steering wheel to steer, tip it
+ *    forward for gas and back for brake (in the air that pitches the nose down / up). A small meter
+ *    under the left thumb shows the pedal.
+ *    Without a usable tilt sensor (permission refused, setting off) a floating left thumb stick
+ *    steers and drives instead.
  *  - Right thumb: THRUST and JUMP (the vertical booster). Above them, only when they matter:
  *    VACUUM (levels that have it), and in the air STABILIZE and ROLL L / ROLL R.
- *  - Camera: drag a finger over the scene to orbit the chase camera; it drifts back behind the
- *    car a moment after the finger lifts, and a tap puts it back at once.
+ *  - Camera: drag a finger over the scene to orbit the chase camera, pinch to zoom. The orbit drifts
+ *    back behind the car a moment after the finger lifts; a tap puts orbit and zoom back at once.
  *
  * Pause is the HUD's only button. Multi-touch safe: each control tracks its own pointer ids with
  * pointer capture. Writes the module-level `touchInput` / `cameraLook` (src/input/touchInput.ts) —
  * no React state per move.
  */
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
-import { initGyro, setGyroEnabled } from '@/input/gyro';
+import { calibrateTilt, initGyro, setGyroEnabled } from '@/input/gyro';
 import { setInputMode } from '@/input/inputMode';
-import { cameraLook, resetCameraLook, resetTouchInput, touchInput } from '@/input/touchInput';
+import { cameraLook, clampZoom, resetCameraLook, resetCameraOrbit, resetTouchInput, touchInput } from '@/input/touchInput';
 import { useAppStore } from '@/state/appStore';
 import { useHudStore } from '@/state/hudStore';
 import { useSettingsStore } from '@/state/settingsStore';
@@ -231,6 +232,37 @@ function TouchButton({
 }
 
 /* ------------------------------------------------------------------ */
+/* Tilt meter                                                          */
+/* ------------------------------------------------------------------ */
+
+/** Gas / brake read-out of the phone's tilt. Tapping it takes the current pose as neutral. */
+function TiltMeter() {
+  const gasRef = useRef<HTMLSpanElement>(null);
+  const brakeRef = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    let raf = 0;
+    const tick = () => {
+      const t = touchInput.tiltThrottle;
+      if (gasRef.current) gasRef.current.style.transform = `scaleY(${Math.max(0, t)})`;
+      if (brakeRef.current) brakeRef.current.style.transform = `scaleY(${Math.max(0, -t)})`;
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return (
+    <button type="button" className="rf-tiltmeter" aria-label="Gas and brake: tap to recentre the tilt" tabIndex={-1} onClick={calibrateTilt}>
+      <span className="rf-tiltmeter__label">Gas</span>
+      <span className="rf-tiltmeter__track" aria-hidden="true">
+        <span ref={gasRef} className="rf-tiltmeter__fill rf-tiltmeter__fill--gas" />
+        <span ref={brakeRef} className="rf-tiltmeter__fill rf-tiltmeter__fill--brake" />
+      </span>
+      <span className="rf-tiltmeter__label">Brake</span>
+    </button>
+  );
+}
+
+/* ------------------------------------------------------------------ */
 /* Camera look                                                         */
 /* ------------------------------------------------------------------ */
 
@@ -246,9 +278,17 @@ const TAP_MS = 260;
 
 const wrapPi = (a: number) => a - Math.PI * 2 * Math.round(a / (Math.PI * 2));
 
-/** The whole screen is a camera handle (under the HUD and the buttons). */
+/** The whole screen is a camera handle (under the HUD and the buttons): one finger orbits, two pinch to zoom. */
 function LookPad({ enabled }: { enabled: boolean }) {
   const drag = useRef({ id: -1, x: 0, y: 0, t: 0, moved: 0 });
+  /** Every finger on the pad, for the pinch. */
+  const touches = useRef(new Map<number, { x: number; y: number }>());
+  const pinch = useRef(0);
+
+  const spread = () => {
+    const [a, b] = [...touches.current.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  };
 
   const end = (cancel: boolean, at = 0) => {
     const d = drag.current;
@@ -261,19 +301,43 @@ function LookPad({ enabled }: { enabled: boolean }) {
   };
 
   useEffect(() => {
-    if (!enabled) end(true);
+    if (!enabled) {
+      end(true);
+      touches.current.clear();
+      pinch.current = 0;
+    }
   }, [enabled]);
   useEffect(() => () => end(true), []);
 
   const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
-    if (!enabled || drag.current.id !== -1) return;
+    if (!enabled) return;
     e.preventDefault();
     capture(e.currentTarget, e.pointerId);
     setInputMode('touch');
+    touches.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (touches.current.size === 2) {
+      // second finger: the orbit hands over to a pinch
+      pinch.current = spread();
+      end(true);
+      return;
+    }
+    if (drag.current.id !== -1 || touches.current.size > 2) return;
     drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, moved: 0 };
     cameraLook.dragging = true;
   };
   const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const t = touches.current.get(e.pointerId);
+    if (t) {
+      t.x = e.clientX;
+      t.y = e.clientY;
+    }
+    if (touches.current.size === 2 && pinch.current > 0) {
+      // fingers apart = zoom in (closer camera), together = zoom out
+      const now = spread();
+      if (now > 1) cameraLook.zoom = clampZoom(cameraLook.zoom * (pinch.current / now));
+      pinch.current = now;
+      return;
+    }
     const d = drag.current;
     if (e.pointerId !== d.id) return;
     const dx = e.clientX - d.x;
@@ -286,6 +350,8 @@ function LookPad({ enabled }: { enabled: boolean }) {
     cameraLook.pitch = Math.min(LOOK_PITCH_MAX, Math.max(LOOK_PITCH_MIN, cameraLook.pitch + dy * LOOK_PITCH_PER_PX));
   };
   const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    touches.current.delete(e.pointerId);
+    if (touches.current.size < 2) pinch.current = 0; // the finger left over does not start an orbit
     if (e.pointerId === drag.current.id) end(e.type !== 'pointerup', e.timeStamp);
   };
 
@@ -318,7 +384,7 @@ function TouchHint({ tilt }: { tilt: boolean }) {
   if (!show) return null;
   return (
     <div className="rf-touch__hint" aria-hidden="true">
-      {tilt ? 'Tilt the phone to steer' : 'Drag the stick to steer'} · Drag the scene to look around
+      {tilt ? 'Turn the phone to steer · tip it forward / back for gas / brake' : 'Drag the stick to steer'} · Drag or pinch the scene to look around
     </div>
   );
 }
@@ -335,7 +401,6 @@ function TouchLayer() {
   const tilt = useTiltSteering();
   const enabled = overlay === 'none';
   const roll = useRef({ left: false, right: false });
-  const pedals = useRef({ gas: false, brake: false });
 
   useEffect(() => {
     touchInput.active = true;
@@ -357,10 +422,6 @@ function TouchLayer() {
     roll.current[side] = v;
     touchInput.roll = (roll.current.right ? 1 : 0) - (roll.current.left ? 1 : 0);
   };
-  const setPedal = (pedal: 'gas' | 'brake', v: boolean) => {
-    pedals.current[pedal] = v;
-    touchInput.throttle = (pedals.current.gas ? 1 : 0) - (pedals.current.brake ? 1 : 0);
-  };
 
   return (
     <>
@@ -373,10 +434,7 @@ function TouchLayer() {
       >
         <TouchHint tilt={tilt} />
         {tilt ? (
-          <div className="rf-touch__pedals">
-            <TouchButton label="Brake" icon="brake" variant="brake" enabled={enabled} onChange={(v) => setPedal('brake', v)} />
-            <TouchButton label="Gas" icon="gas" variant="gas" enabled={enabled} onChange={(v) => setPedal('gas', v)} />
-          </div>
+          <TiltMeter />
         ) : (
           <Stick enabled={enabled} />
         )}

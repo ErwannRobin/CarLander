@@ -17,20 +17,32 @@ export interface RunnerHooks {
   requestRestart?(): void;
   /** Called ~30 times per second with the current snapshot (HUD). */
   publishHud?(): void;
+  /** The start countdown moved to `step` (3, 2, 1), reached GO (0) or was cut off (null). */
+  onCountdown?(step: number | null): void;
 }
 
 const CRASH_RESTART_DELAY = 1.7; // real seconds
+/** 3-2-1 before every departure: seconds per number on the first start of a level, and on retries. */
+export const COUNTDOWN_STEPS = 3;
+const COUNTDOWN_STEP_FIRST = 1;
+const COUNTDOWN_STEP_RETRY = 0.65;
 const HUD_INTERVAL = 1 / 30;
 
 export class GameRunner {
   sim: GameSim | null = null;
   level: LevelDef | null = null;
   paused = false;
+  /** Off: the car drives away at once (QA and screenshot scripts). */
+  countdownEnabled = true;
   private acc = 0;
   private crashClock = -1;
   private hudClock = 0;
   private attempts = new Map<number, number>();
   private flightAssist = true;
+  /** Real seconds of countdown left (0 = driving) and the length of one number. */
+  private countdownLeft = 0;
+  private countdownStep = COUNTDOWN_STEP_FIRST;
+  private countdownShown: number | null = null;
 
   constructor(private hooks: RunnerHooks) {}
 
@@ -41,7 +53,7 @@ export class GameRunner {
     this.level = level;
     runtime.level = level;
     this.sim = new GameSim(level, { firstAttempt: prev === 0, flightAssist: this.flightAssist });
-    this.afterReset();
+    this.afterReset(COUNTDOWN_STEP_FIRST);
   }
 
   restart() {
@@ -50,7 +62,7 @@ export class GameRunner {
     this.attempts.set(this.level.id, prev + 1);
     this.sim.setOptions({ firstAttempt: false, flightAssist: this.flightAssist });
     this.sim.reset();
-    this.afterReset();
+    this.afterReset(COUNTDOWN_STEP_RETRY);
   }
 
   setFlightAssist(on: boolean) {
@@ -58,9 +70,24 @@ export class GameRunner {
     this.sim?.setOptions({ flightAssist: on });
   }
 
-  private afterReset() {
+  /** True while the start countdown holds the car at the line. */
+  get counting(): boolean {
+    return this.countdownLeft > 0;
+  }
+
+  private setCountdownShown(step: number | null) {
+    if (step === this.countdownShown) return;
+    this.countdownShown = step;
+    this.hooks.onCountdown?.(step);
+  }
+
+  private afterReset(countdownStep: number) {
     this.acc = 0;
     this.crashClock = -1;
+    this.countdownStep = countdownStep;
+    this.countdownLeft = this.countdownEnabled ? countdownStep * COUNTDOWN_STEPS : 0;
+    this.countdownShown = null;
+    if (this.countdownEnabled) this.setCountdownShown(COUNTDOWN_STEPS);
     this.hudClock = HUD_INTERVAL;
     runtime.runId++;
     this.flushEvents();
@@ -89,7 +116,12 @@ export class GameRunner {
       return;
     }
     let simDt = 0;
-    if (!this.paused) {
+    if (!this.paused && this.countdownLeft > 0) {
+      // 3 - 2 - 1: the car waits at the line, the world and the camera keep moving
+      this.countdownLeft = Math.max(0, this.countdownLeft - dt);
+      if (this.countdownLeft > 0) this.setCountdownShown(Math.max(1, Math.ceil(this.countdownLeft / this.countdownStep - 1e-9)));
+      else this.setCountdownShown(0);
+    } else if (!this.paused) {
       const scale = Math.min(1, Math.max(0.05, sim.snapshot.timeScale || 1));
       simDt = dt * scale;
       this.acc += simDt;
@@ -154,6 +186,8 @@ export class GameRunner {
   }
 
   dispose() {
+    this.countdownLeft = 0;
+    this.setCountdownShown(null);
     this.disposeSim();
     runtime.level = null;
   }

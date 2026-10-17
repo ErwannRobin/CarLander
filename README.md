@@ -32,11 +32,15 @@ npm test           # headless physics, sim and level tests
 
 Keys can be remapped in Settings. Gamepads (B = vertical booster) and touch controls are supported.
 
-**On a phone** (landscape): tilt the phone like a steering wheel to steer. Left thumb: GAS and BRAKE. Right thumb:
-THRUST and JUMP (the vertical booster); VACUUM appears on Level 3, STABILIZE and ROLL appear in the air.
-Drag a finger over the scene to look around; the camera returns behind the car on its own. Tilt steering needs
-the motion sensor, which browsers only give to secure pages (https, or localhost) and, on iPhone, after you
-accept the prompt on your first tap. Otherwise (or with Settings → Tilt steering off) an on-screen stick steers.
+**On a phone** (landscape): the phone is the controller. Turn it like a steering wheel to steer, tip it forward
+for GAS and back for BRAKE (the neutral pose is wherever you hold it when the 3-2-1 ends; tap the small gas /
+brake meter to recentre). Right thumb: THRUST and JUMP (the vertical booster); VACUUM appears on Level 3,
+STABILIZE and ROLL appear in the air. Drag a finger over the scene to look around and pinch to zoom; the orbit
+returns behind the car on its own (a tap resets orbit and zoom). Tilt controls need the motion sensor, which
+browsers only give to secure pages (https, or localhost) and, on iPhone, after you accept the prompt when you
+press Play. If the sensor is refused or missing (or with Settings → Tilt controls off) a small on-screen stick
+steers and drives instead. On the home screen, drag to turn the car and pinch (or scroll) to zoom.
+Every run starts with a 3-2-1 countdown (`?nocountdown=1` skips it for QA).
 
 ## Levels
 
@@ -44,9 +48,9 @@ accept the prompt on your first tap. Otherwise (or with Settings → Tilt steeri
    thrusters, match the slope and stabilize into the target rings.
 2. **Clear the Gap** (golden-hour canyon). Flip off two trick kickers, boost up the big ramp,
    clear a 190 m chasm through the ring gate and land on all four wheels.
-3. **The Inverted Ramp** (night arena, after Tesla's crescent-ramp demo). Jump onto the arena,
-   hold the vacuum up an 86 m crescent, drive the beam upside down, release, flip upright and
-   land on the distant hill.
+3. **The Inverted Ramp** (night arena, after Tesla's crescent-ramp demo). Floor it down a straight
+   road (no jump), hold the vacuum up an 86 m crescent, drive the straight beam upside down, release,
+   flip upright and land on the distant hill.
 
 Landings are graded PERFECT, CLEAN, HARD or CRASH. The score adds distance, air time, tricks,
 landing quality and a combo multiplier. Medals, best scores and level unlocks are saved locally.

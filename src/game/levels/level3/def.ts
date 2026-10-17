@@ -9,7 +9,6 @@ import { L3_GEO, v3, yawOf, type L3Geometry } from './geometry';
 
 export const L3_IDS = {
   runway: 'l3-runway',
-  kicker: 'l3-kicker',
   deck: 'l3-deck',
   crescent: 'l3-crescent',
   hill: 'l3-hill',
@@ -25,19 +24,16 @@ export const L3_IDS = {
 export function createLevel3(geo: L3Geometry = L3_GEO): LevelDef {
   const p = geo.params;
   const deckLen = geo.deck[geo.deck.length - 1].s;
-  const rampEnd = geo.rampLength * 0.7;
 
-  // deck: wide landing ramp narrowing to the crescent width along the approach lane
+  // deck: the runway's width narrowing to the crescent width along the approach lane
   const deckWidth = (s: number) => {
-    if (s <= rampEnd) return p.deckWidth;
-    const t = Math.min(1, (s - rampEnd) / Math.max(1, deckLen - rampEnd - 8));
+    const t = Math.min(1, s / Math.max(1, deckLen - 8));
     const e = t * t * (3 - 2 * t);
     return p.deckWidth + (p.crescentWidth - p.deckWidth) * e;
   };
 
   const pieces: PieceDef[] = [
     { kind: 'ribbon', id: L3_IDS.runway, frames: geo.runway, width: p.runwayWidth, style: 'runway', adhesive: false, edgeLights: 'red' },
-    { kind: 'ribbon', id: L3_IDS.kicker, frames: geo.kicker, width: p.runwayWidth, style: 'adhesive', adhesive: false, edgeLights: 'red' },
     { kind: 'ribbon', id: L3_IDS.deck, frames: geo.deck, width: deckWidth, style: 'runway', adhesive: true, edgeLights: 'red' },
     { kind: 'ribbon', id: L3_IDS.crescent, frames: geo.crescent, width: p.crescentWidth, style: 'adhesive', adhesive: true, edgeLights: 'red' },
     { kind: 'ribbon', id: L3_IDS.hill, frames: geo.hill, width: p.hillWidth, style: 'landing', adhesive: false, edgeLights: 'cyan' },
@@ -50,7 +46,7 @@ export function createLevel3(geo: L3Geometry = L3_GEO): LevelDef {
   // ---- zones ----
   const deckMid = frameAt(geo.deck, deckLen * 0.5);
   const deckTopY = geo.deck[0].position.y;
-  const deckLowY = geo.deck[geo.deck.length - 1].position.y;
+  const deckLowY = geo.deck[geo.deck.length - 1].position.y; // = deckTopY: the lane is flat
   // last 70 m of the approach lane before the quarter pipe (vacuum prompt)
   const pipeFrame = frameAt(geo.deck, deckLen - 35);
   const releaseMid = frameAt(geo.crescent, (geo.releaseStart + geo.releaseEnd) / 2);
@@ -111,7 +107,7 @@ export function createLevel3(geo: L3Geometry = L3_GEO): LevelDef {
     name: 'THE INVERTED RAMP',
     subtitle: 'Night arena',
     description:
-      'Jump the void onto the night arena, hold the vacuum up an 86-metre crescent, drive the beam upside down, release, flip upright and land on the distant ski-jump hill.',
+      'Floor it down the straight road onto the night arena, hold the vacuum up an 86-metre crescent, drive the beam upside down, release, flip upright and land on the distant ski-jump hill.',
     theme: 'night',
     spawn: { position: [0, 0.36, p.spawnZ], yawDeg: 0, speed: p.spawnSpeed },
     killY: -50,
@@ -122,14 +118,11 @@ export function createLevel3(geo: L3Geometry = L3_GEO): LevelDef {
     targetZoneId: L3_IDS.target,
     objectives: [
       {
-        id: 'l3-jump',
-        title: 'AERIAL APPROACH',
-        text: 'Jump the void onto the arena deck',
-        hints: [
-          { keys: ['W'], label: 'Accelerate', actions: ['accelerate'] },
-          { keys: ['SHIFT'], label: 'Stabilize', actions: ['stabilize'] },
-        ],
-        complete: (ctx) => H.landedIn(ctx, L3_IDS.deckZone, 'hard') || onCrescent(ctx),
+        id: 'l3-run',
+        title: 'FULL THROTTLE',
+        text: 'Drive straight onto the arena road',
+        hints: [{ keys: ['W'], label: 'Accelerate', actions: ['accelerate'] }],
+        complete: (ctx) => ctx.inZone(L3_IDS.deckZone) || onCrescent(ctx),
       },
       {
         id: 'l3-vacuum',
@@ -204,7 +197,7 @@ export function createLevel3(geo: L3Geometry = L3_GEO): LevelDef {
         position: [p.runwayWidth / 2 + 5, 4.5, p.spawnZ - 70],
         text: 'FULL THROTTLE',
         hint: { keys: ['W'], label: 'Accelerate', actions: ['accelerate'] },
-        objectiveId: 'l3-jump',
+        objectiveId: 'l3-run',
       },
       {
         id: 'l3-hint-vacuum',
@@ -215,8 +208,8 @@ export function createLevel3(geo: L3Geometry = L3_GEO): LevelDef {
       },
     ],
     finish: { zoneId: L3_IDS.finish, minQuality: 'hard', settleTime: 1 },
-    medals: { bronze: 3500, silver: 7500, gold: 11000 },
-    intro: { from: [-150, 34, -70], lookAt: [15, 38, -215], duration: 3.8 },
+    medals: { bronze: 3500, silver: 7200, gold: 11000 },
+    intro: { from: [-45, 24, 75], lookAt: [0, 34, -230], duration: 3.8 },
   };
   return level;
 }

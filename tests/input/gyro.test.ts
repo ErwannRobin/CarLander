@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Euler, Matrix4 } from 'three';
-import { steerFromTiltDeg, tiltAngleDeg } from '@/input/gyro';
+import { pitchAngleDeg, steerFromTiltDeg, throttleFromPitchDeg, tiltAngleDeg } from '@/input/gyro';
 import { InputManager } from '@/input/InputManager';
 import { resetTouchInput, touchInput } from '@/input/touchInput';
 
@@ -88,5 +88,45 @@ describe('touch input merge', () => {
     expect(im.sample().steer).toBe(0);
     resetTouchInput();
     touchInput.active = false;
+  });
+});
+
+describe('tilt gas / brake merge', () => {
+  it('adds the tilt throttle to the stick / key throttle and clamps it', () => {
+    const im = new InputManager();
+    touchInput.active = true;
+    touchInput.tiltThrottle = -0.6;
+    expect(im.sample().throttle).toBeCloseTo(-0.6, 9);
+    touchInput.tiltThrottle = 0.8;
+    touchInput.throttle = 0.5;
+    expect(im.sample().throttle).toBe(1);
+    resetTouchInput();
+    expect(touchInput.tiltThrottle).toBe(0);
+    touchInput.active = false;
+  });
+});
+
+describe('pitchAngleDeg / throttleFromPitchDeg', () => {
+  it('reads how far the screen faces up, whatever the screen orientation', () => {
+    for (const lean of [-25, -10, 0, 12, 30, 55]) {
+      for (const screenAngle of [0, 90, 180, 270]) {
+        for (const wheel of [-40, 0, 25]) {
+          const { beta, gamma } = reading(lean, screenAngle, wheel);
+          // the top of the phone tipped away from the player = screen facing up = positive
+          expect(pitchAngleDeg(beta, gamma), `lean ${lean} screen ${screenAngle} wheel ${wheel}`).toBeCloseTo(lean, 4);
+        }
+      }
+    }
+  });
+
+  it('maps tilt to gas (+) and brake (−) with a dead band and full travel', () => {
+    expect(throttleFromPitchDeg(0)).toBe(0);
+    expect(throttleFromPitchDeg(4.9)).toBe(0);
+    expect(throttleFromPitchDeg(-4.9)).toBe(0);
+    expect(throttleFromPitchDeg(12)).toBeGreaterThan(0.2);
+    expect(throttleFromPitchDeg(12)).toBeLessThan(0.7);
+    expect(throttleFromPitchDeg(-12)).toBe(-throttleFromPitchDeg(12));
+    expect(throttleFromPitchDeg(25)).toBe(1);
+    expect(throttleFromPitchDeg(-80)).toBe(-1);
   });
 });

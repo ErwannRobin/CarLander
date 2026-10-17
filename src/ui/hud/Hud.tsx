@@ -21,6 +21,7 @@ import { actionForCode, useSettingsStore } from '@/state/settingsStore';
 import { isShortcutChord, useKeyDown, useKeyLabelsVersion } from '../hooks';
 import { useTouchUiActive } from '../touchUi';
 import { CenterPrompt } from './CenterPrompt';
+import { Countdown } from './Countdown';
 import { FlightStrip } from './FlightStrip';
 import { LandingBanner, TrickFeed } from './Feed';
 import { ControlGuide, HudButtons, ObjectivePanel, ScoreReadout } from './HudPanels';
@@ -70,6 +71,7 @@ export function Hud() {
       </div>
       <TrickFeed />
       <CenterPrompt />
+      <Countdown />
       <LandingBanner />
       <SpeedCluster />
       <FlightStrip />
