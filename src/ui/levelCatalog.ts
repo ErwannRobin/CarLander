@@ -23,8 +23,8 @@ export const LEVEL_CATALOG: Record<LevelId, LevelCard> = {
     name: 'Learn to Fly',
     subtitle: 'Morning runway',
     description:
-      'A wide runway, a gentle kicker and an open gap above the clouds. Fire the thrusters at the lip, then settle onto the target deck.',
-    skill: 'Thrust and landing alignment',
+      'A wide runway, a gentle kicker and an open gap above the clouds. Fire the thrusters after the lip, line up with the slope and settle into the rings.',
+    skill: 'Thrust, pitch and a stabilized landing',
     theme: 'morning',
     requirement: null,
   },
@@ -33,8 +33,8 @@ export const LEVEL_CATALOG: Record<LevelId, LevelCard> = {
     name: 'Clear the Gap',
     subtitle: 'Golden-hour canyon',
     description:
-      'Two kickers to practise flips, a boost straight, then a 160-metre chasm. Clear it and match the downslope to land.',
-    skill: 'Tricks and slope matching',
+      'Two trick kickers, a boost up the big ramp, then a 190-metre chasm. Thread the ring, realign and land on all four wheels.',
+    skill: 'Flips, thrust control and slope matching',
     theme: 'canyon',
     requirement: 'Finish Learn to Fly to unlock',
   },
@@ -43,8 +43,8 @@ export const LEVEL_CATALOG: Record<LevelId, LevelCard> = {
     name: 'The Inverted Ramp',
     subtitle: 'Night arena',
     description:
-      'Hold the vacuum up a 70-metre crescent, drive the beam upside down, release, flip upright and land on a distant platform.',
-    skill: 'Vacuum and inverted recovery',
+      'Hold the vacuum up an 86-metre crescent, drive the beam upside down, then release, flip upright and stick the landing.',
+    skill: 'Vacuum, inverted driving and recovery',
     theme: 'night',
     requirement: 'Finish Clear the Gap to unlock',
   },

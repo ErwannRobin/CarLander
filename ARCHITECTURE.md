@@ -28,7 +28,7 @@ Pillars, in priority order:
 
 Dev sandbox pages: `dev/<name>.html` + `dev/<name>.tsx` (served at `http://127.0.0.1:5173/dev/<name>.html`).
 Each module owner builds its own sandbox page that imports ONLY its module (+ shared foundation), so a
-broken file elsewhere does not break your page. `dev/glcheck.html` is a minimal example.
+broken file elsewhere does not break your page.
 
 `src/dev/mockRuntime.ts` provides `useMockRuntime()` / `<MockRuntimeDriver/>`: a scripted fake sim
 (accelerate → jump with thrust and a backflip → landing → vacuum engage → drift → crash → loop, on a
@@ -57,7 +57,7 @@ Modules:
 | Audio | `src/audio/**`, `dev/audio.*` |
 | UI, input, stores | `src/ui/**`, `src/state/**`, `src/input/**`, `dev/ui.*` |
 | Integration (lead) | `src/App.tsx`, `src/main.tsx`, `src/game/GameRunner.ts`, `src/render/camera/**`, `src/render/scenes/**`, `src/render/GameCanvas.tsx` |
-| Levels (later phase) | `src/game/levels/level{1,2,3}.ts`, `src/render/levels/**`, `tests/levels/**` |
+| Levels | `src/game/levels/level{1,2,3}.ts` (+ `level{N}/` helpers), `src/render/levels/**`, `tests/levels/**` |
 
 Never edit files you don't own. If you need something from another module, code against the
 contract in `types.ts` / this document and note the assumption in your final report.

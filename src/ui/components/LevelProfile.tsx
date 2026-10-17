@@ -21,15 +21,16 @@ function Pylons({ xs }: { xs: Array<[number, number]> }) {
 function Level1() {
   return (
     <>
-      <Pylons xs={[[30, 60], [78, 60], [126, 60], [164, 56], [230, 59], [280, 61]]} />
+      <Pylons xs={[[30, 60], [78, 60], [126, 60], [164, 56], [236, 57], [290, 76]]} />
       <path className="rf-profile__track" d="M8 60 H148 C156 60 164 57 172 51" />
-      <path className="rf-profile__track" d="M214 56 C224 56 232 60 244 61 H312" />
-      {/* thrust burn just after the lip, then the ballistic arc */}
+      {/* apron at lip height, crest, landing slope carrying the rings, outrun to the finish deck */}
+      <path className="rf-profile__track" d="M208 51 H222 C230 51 236 54 246 61 C256 68 266 72 280 73 H312" />
+      {/* thrust burn just after the lip, then the ballistic arc onto the slope */}
       <path className="rf-profile__burn" d="M172 51 Q178 44 186 39" />
-      <path className="rf-profile__path" d="M186 39 Q208 24 238 58" />
-      {/* target rings seen edge-on */}
-      <ellipse className="rf-profile__target" cx="266" cy="61" rx="17" ry="3.2" />
-      <line className="rf-profile__target" x1="266" y1="56.5" x2="266" y2="61" />
+      <path className="rf-profile__path" d="M186 39 Q218 22 248 58" />
+      {/* target rings seen edge-on on the slope */}
+      <ellipse className="rf-profile__target" cx="252" cy="65" rx="15" ry="3" transform="rotate(31 252 65)" />
+      <line className="rf-profile__target" x1="252" y1="60" x2="252" y2="65" />
     </>
   );
 }
@@ -59,6 +60,9 @@ function Level3() {
         <path d="M270 16 L282 28 L270 40 L282 52 L270 64 L282 76 L270 88" />
       </g>
       <Pylons xs={[[136, 78], [176, 78], [24, 58], [70, 52]]} />
+      {/* aerial approach: start runway, kicker, the void, onto the arena deck */}
+      <path className="rf-profile__track" d="M64 82 H98 C103 82 106 80 109 77" />
+      <path className="rf-profile__path" d="M109 77 Q114 72 121 78" />
       {/* deck → quarter pipe → vertical wall → overhang curling back into the inverted beam */}
       <path
         className="rf-profile__track"
