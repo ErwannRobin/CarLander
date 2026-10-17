@@ -8,7 +8,7 @@ import type { ControlAction, ControlHint, Settings } from '@/game/types';
 import type { InputMode } from '@/input/inputMode';
 import { GAMEPAD_ACTION_LABELS, TOUCH_ACTION_LABELS, keyLabel, qwertyKeyLabel } from '@/input/keyNames';
 import { CONTROL_ACTIONS, DEFAULT_BINDINGS, useSettingsStore } from '@/state/settingsStore';
-import { useInputMode, useKeyLabelsVersion } from '../hooks';
+import { useInputMode, useKeyLabelsVersion, useTiltSteering } from '../hooks';
 import { Icon, type IconName } from './Icon';
 
 type Bindings = Settings['bindings'];
@@ -111,40 +111,65 @@ interface TouchItem {
   label: string;
 }
 
-const TOUCH_ITEMS: Record<ControlAction, Omit<TouchItem, 'key'>> = {
+/** Stick fallback (no tilt sensor): drive and steer with the floating stick. */
+const STICK_ITEMS = {
   accelerate: { icon: 'stick', text: '↑', label: 'Stick up' },
   brake: { icon: 'stick', text: '↓', label: 'Stick down' },
   left: { icon: 'stick', text: '←', label: 'Stick left' },
   right: { icon: 'stick', text: '→', label: 'Stick right' },
+} as const;
+
+const TOUCH_ITEMS: Record<ControlAction, Omit<TouchItem, 'key'>> = {
+  accelerate: { icon: 'gas', label: 'Gas button' },
+  brake: { icon: 'brake', label: 'Brake button' },
+  left: { icon: 'tilt', text: '←', label: 'Tilt left' },
+  right: { icon: 'tilt', text: '→', label: 'Tilt right' },
   rollLeft: { icon: 'rollLeft', label: 'Roll left button' },
   rollRight: { icon: 'rollRight', label: 'Roll right button' },
   boost: { icon: 'thrust', label: 'Thrust button' },
+  jump: { icon: 'jump', label: 'Jump button' },
   vacuum: { icon: 'vacuum', label: 'Vacuum button' },
   stabilize: { icon: 'stabilize', label: 'Stabilize button' },
   restart: { icon: 'restart', label: 'Restart button' },
   pause: { icon: 'pause', label: 'Pause button' },
 };
 
-/** Touch hint items; opposing stick directions merge into one item. */
-export function touchItems(actions: readonly ControlAction[]): TouchItem[] {
+/**
+ * Touch hint items; opposing directions merge into one item. `tilt`: the phone steers and the
+ * pedals drive; otherwise the floating stick does both.
+ */
+export function touchItems(actions: readonly ControlAction[], tilt = true): TouchItem[] {
   const out: TouchItem[] = [];
   const skip = new Set<ControlAction>();
   if (actions.includes('accelerate') && actions.includes('brake')) {
-    out.push({ key: 'pitch', icon: 'stick', text: '↑↓', label: 'Stick up or down' });
+    out.push(
+      tilt
+        ? { key: 'pitch', icon: 'gas', text: '↕', label: 'Gas or brake button' }
+        : { key: 'pitch', icon: 'stick', text: '↑↓', label: 'Stick up or down' },
+    );
     skip.add('accelerate').add('brake');
   }
   if (actions.includes('left') && actions.includes('right')) {
-    out.push({ key: 'steer', icon: 'stick', text: '←→', label: 'Stick left or right' });
+    out.push(
+      tilt
+        ? { key: 'steer', icon: 'tilt', text: '←→', label: 'Tilt the phone left or right' }
+        : { key: 'steer', icon: 'stick', text: '←→', label: 'Stick left or right' },
+    );
     skip.add('left').add('right');
   }
-  for (const a of actions) if (!skip.has(a)) out.push({ key: a, ...TOUCH_ITEMS[a] });
+  for (const a of actions) {
+    if (skip.has(a)) continue;
+    const stick = !tilt && (a === 'accelerate' || a === 'brake' || a === 'left' || a === 'right') ? STICK_ITEMS[a] : TOUCH_ITEMS[a];
+    out.push({ key: a, ...stick });
+  }
   return out;
 }
 
 function TouchCaps({ actions, size }: { actions: readonly ControlAction[]; size: 'sm' | 'lg' }) {
+  const tilt = useTiltSteering();
   return (
     <span className="rf-keys">
-      {touchItems(actions).map((it) => (
+      {touchItems(actions, tilt).map((it) => (
         <kbd
           key={it.key}
           className={`rf-keycap rf-keycap--touch ${size === 'lg' ? 'rf-keycap--lg' : ''}`}

@@ -376,10 +376,12 @@ export class SoundCore {
         break;
       }
       case 'boostStart':
+      case 'jumpStart':
         if (t - this.lastBoostAt > 0.12) sfx.boostIgnition(t, p);
         this.lastBoostAt = t;
         break;
       case 'boostEnd':
+      case 'jumpEnd':
         if (t - this.lastBoostEndAt > 0.12) sfx.boostCutoff(t, p);
         this.lastBoostEndAt = t;
         break;

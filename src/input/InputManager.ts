@@ -15,7 +15,7 @@
  *   (macOS drops the keyup of any key released while ⌘ is held).
  *
  * Gamepad (ARCHITECTURE §12): left stick steer + pitch, RT accelerate, LT brake, A thrust,
- * RB vacuum, LB stabilize, X / Y roll left / right (+ right stick X as analog roll),
+ * B vertical booster, RB vacuum, LB stabilize, X / Y roll left / right (+ right stick X as analog roll),
  * D-pad mirrors the left stick, Start = pause, Back = restart.
  * Start also fires 'pause' while disabled, so a pad can close the pause menu it opened
  * (connectInputToStores maps it to togglePause, which ignores it outside gameplay).
@@ -64,6 +64,7 @@ const pressed = (b: GamepadButton | undefined) => !!b && (b.pressed || b.value >
 
 /** Standard-mapping buttons that drive held game actions, as bits of a mask (bit i = button i). */
 const BIT_A = 1 << 0; // thrust
+const BIT_B = 1 << 1; // vertical booster
 const BIT_X = 1 << 2; // roll left
 const BIT_Y = 1 << 3; // roll right
 const BIT_LB = 1 << 4; // stabilize
@@ -85,7 +86,7 @@ export class InputManager {
   private lastPadPoll = -Infinity;
   /** rAF handle of the pad poll that runs while a pad is connected (0 = not running). */
   private padRaf = 0;
-  private readonly pad = { throttle: 0, steer: 0, roll: 0, boost: false, vacuum: false, stabilize: false };
+  private readonly pad = { throttle: 0, steer: 0, roll: 0, boost: false, jump: false, vacuum: false, stabilize: false };
   private padStart = false;
   private padBack = false;
   /**
@@ -138,6 +139,7 @@ export class InputManager {
     let steer = 0;
     let roll = 0;
     let boost = false;
+    let jump = false;
     let vacuum = false;
     let stabilize = false;
 
@@ -148,6 +150,7 @@ export class InputManager {
       steer = (this.held('right') ? 1 : 0) - (this.held('left') ? 1 : 0);
       roll = (this.held('rollRight') ? 1 : 0) - (this.held('rollLeft') ? 1 : 0);
       boost = this.held('boost');
+      jump = this.held('jump');
       vacuum = this.held('vacuum');
       stabilize = this.held('stabilize');
 
@@ -156,14 +159,16 @@ export class InputManager {
       steer += p.steer;
       roll += p.roll;
       boost ||= p.boost;
+      jump ||= p.jump;
       vacuum ||= p.vacuum;
       stabilize ||= p.stabilize;
 
       if (touchInput.active) {
         throttle += touchInput.throttle;
-        steer += touchInput.steer;
+        steer += touchInput.steer + touchInput.tilt;
         roll += touchInput.roll;
         boost ||= touchInput.boost;
+        jump ||= touchInput.jump;
         vacuum ||= touchInput.vacuum;
         stabilize ||= touchInput.stabilize;
       }
@@ -173,6 +178,7 @@ export class InputManager {
     out.steer = clamp1(steer);
     out.roll = clamp1(roll);
     out.boost = boost;
+    out.jump = jump;
     out.vacuum = vacuum;
     out.stabilize = stabilize;
     return out;
@@ -222,6 +228,7 @@ export class InputManager {
     p.steer = 0;
     p.roll = 0;
     p.boost = false;
+    p.jump = false;
     p.vacuum = false;
     p.stabilize = false;
     this.padLatch = -1;
@@ -356,7 +363,7 @@ export class InputManager {
     const pad = this.pad;
     if (!gp) {
       pad.throttle = pad.steer = pad.roll = 0;
-      pad.boost = pad.vacuum = pad.stabilize = false;
+      pad.boost = pad.jump = pad.vacuum = pad.stabilize = false;
       this.padStart = this.padBack = false;
       return;
     }
@@ -385,6 +392,7 @@ export class InputManager {
     // Action buttons held when input (re)enabled stay ignored until released (see padLatch).
     const held =
       (pressed(bt[0]) ? BIT_A : 0) |
+      (pressed(bt[1]) ? BIT_B : 0) |
       (pressed(bt[2]) ? BIT_X : 0) |
       (pressed(bt[3]) ? BIT_Y : 0) |
       (pressed(bt[4]) ? BIT_LB : 0) |
@@ -397,6 +405,7 @@ export class InputManager {
     pad.steer = clamp1(lx + dRight - dLeft);
     pad.roll = clamp1(deadzone(ax[2] ?? 0, ROLL_STICK_DEADZONE) + (live & BIT_Y ? 1 : 0) - (live & BIT_X ? 1 : 0));
     pad.boost = (live & BIT_A) !== 0;
+    pad.jump = (live & BIT_B) !== 0;
     pad.vacuum = (live & BIT_RB) !== 0;
     pad.stabilize = (live & BIT_LB) !== 0;
 

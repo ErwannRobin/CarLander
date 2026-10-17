@@ -39,6 +39,17 @@ export const TUNING = {
   /** Thrust acceleration along chassis forward (m/s^2). Must exceed gravity to climb. */
   thrustAccel: 24,
 
+  // --- vertical booster ("jump") -------------------------------------
+  jump: {
+    /** Acceleration along chassis up (m/s^2): 2.1 g, so the net climb is +16 m/s^2 when level. */
+    accel: 30,
+    /** Fuel burn relative to the main thrusters (1 = same tank drain per second). */
+    fuelRate: 1,
+    /** Boost fades out over the last m/s before this climb speed along chassis up (m/s). */
+    maxClimb: 24,
+    speedFade: 6,
+  },
+
   // --- air control ---------------------------------------------------
   airPitchRate: 5.4,
   airYawRate: 3.4,

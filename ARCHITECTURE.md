@@ -137,6 +137,14 @@ with pitch/yaw ⇒ climbing is possible because thrustAccel > gravity). Fuel: `L
 (capacity in seconds of burn, regen while grounded after a delay). `boostLevel` smoothed for visuals.
 While thrusting in the air, air control authority +25% (thrust vectoring).
 
+**Vertical booster (F / JUMP button):** underbody jets, acceleration `TUNING.jump.accel` along the chassis
+**up** axis (2.1 g, so a level car climbs at +16 m/s²). On the ground it is a hop, in the air it cushions
+a landing (it pushes along the up axis, i.e. along the surface normal when the car is aligned), and upside
+down on the Level 3 crescent it pushes the car off the surface. It draws on the same tank as the main
+thrusters (`fuelRate` 1: one second of tank per second of burn) with the same start / empty / latch rules,
+and its push fades out above `maxClimb` m/s along the up axis. Reports `jumping` / `jumpLevel` and the
+`jumpStart` / `jumpEnd` events; the four down-facing RCS ports render it, audio reuses the rocket cues.
+
 **Air control (no wheel contact for > 0.08 s):** target-rate controller in chassis axes:
 throttle → pitch (W = nose down), steer → yaw, roll → roll. torque = I·(ω_target − ω)·response,
 clamped; axes without input are damped (`airDamping`) so rotation stops predictably when keys are
@@ -285,7 +293,19 @@ trajectory preview, key remapping), Pause (resume, restart, settings, quit), Lev
 breakdown count-up, medal, personal best, next/retry/menu), Crash overlay (brief). HUD: speed (km/h),
 fuel/thrust gauge, vacuum indicator (OFF / ARMED / ENGAGED, L3), current objective + adaptive control
 guide, altitude & air time while airborne, trick feed & combo, landing quality banner, attitude
-indicator vs. the predicted landing surface. Touch controls on coarse pointers. Every visible button works.
+indicator vs. the predicted landing surface. Touch controls on coarse pointers (see below). Every visible button works.
+
+**Touch / phone layout.** The HUD is cut down on coarse pointers (`.rf-hud[data-touch]`): Pause (Restart is in
+the pause menu), the objective title, the score number, a fuel bar with the speed, the vacuum state (L3), and while
+airborne altitude + the attitude dial; prompts, trick feed and the landing verdict stay. The phone is the
+steering wheel (`src/input/gyro.ts`): the wheel angle is the rotation about the screen normal, read from the
+direction of gravity in the device frame (any screen orientation, no gimbal flip; ±32° = full lock) and
+merged into the steer axis. Left thumb: BRAKE and GAS pedals (pitch up / down in the air). Right thumb:
+THRUST and JUMP; above them VACUUM (levels that have it) and, only while airborne, STABILIZE and ROLL L / R.
+Dragging a finger over the scene orbits the chase camera (`cameraLook`, applied by `CameraRig`), which drifts
+back behind the car 2 s after release (a tap recenters at once). Without a tilt sensor (desktop, an http page: the
+browsers deliver the sensor on secure contexts only), after a refusal (iOS asks on the first tap), or with
+Settings → Tilt steering off, a floating stick steers and drives instead.
 
 ## 12. Controls
 
@@ -296,9 +316,12 @@ indicator vs. the predicted landing surface. Touch controls on coarse pointers. 
 | Steer / yaw (air) | A D, ArrowLeft ArrowRight | |
 | Roll (air) | Q, E | barrel rolls / reorientation |
 | Thrusters | Space | |
+| Vertical booster | F | hop / landing cushion, same fuel as the thrusters |
 | Vacuum (hold) | Enter | Level 3 |
 | Stabilize (hold) | ShiftLeft, ShiftRight | gyro auto-level |
 | Restart | R | instant |
 | Pause | Escape, P | |
 
-Gamepad (bonus): left stick steer/pitch, RT accelerate, LT brake, A thrust, RB vacuum, LB stabilize, bumpers/X-Y roll.
+Gamepad (bonus): left stick steer/pitch, RT accelerate, LT brake, A thrust, B vertical booster, RB vacuum, LB stabilize, X-Y roll.
+
+Touch: tilt the phone to steer, GAS / BRAKE, THRUST, JUMP, VACUUM, STABILIZE and ROLL buttons, drag to look around.

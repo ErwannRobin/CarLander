@@ -92,11 +92,14 @@ export function HudButtons({
   guideOpen,
   guideKey,
   onToggleGuide,
+  touch = false,
 }: {
   guideOpen: boolean;
   /** Label of the guide toggle key, or null when that key is bound to a game action. */
   guideKey: string | null;
   onToggleGuide: () => void;
+  /** Touch layout: only Pause (the pause menu has Restart, and nobody needs a keyboard guide). */
+  touch?: boolean;
 }) {
   const restart = useAppStore((s) => s.restart);
   const pause = useAppStore((s) => s.pause);
@@ -106,20 +109,24 @@ export function HudButtons({
   const tip = (name: string, code?: string) => (code ? `${name} (${keyLabel(code)})` : name);
   return (
     <div className="rf-hud__buttons">
-      <button
-        type="button"
-        className="rf-iconbtn"
-        aria-label="Controls"
-        aria-pressed={guideOpen}
-        title={guideKey ? `Controls (${guideKey})` : 'Controls'}
-        onMouseDown={keepFocus}
-        onClick={onToggleGuide}
-      >
-        <Icon name="controls" />
-      </button>
-      <button type="button" className="rf-iconbtn" aria-label="Restart" title={tip('Restart', restartCode)} onMouseDown={keepFocus} onClick={restart}>
-        <Icon name="restart" />
-      </button>
+      {!touch && (
+        <button
+          type="button"
+          className="rf-iconbtn"
+          aria-label="Controls"
+          aria-pressed={guideOpen}
+          title={guideKey ? `Controls (${guideKey})` : 'Controls'}
+          onMouseDown={keepFocus}
+          onClick={onToggleGuide}
+        >
+          <Icon name="controls" />
+        </button>
+      )}
+      {!touch && (
+        <button type="button" className="rf-iconbtn" aria-label="Restart" title={tip('Restart', restartCode)} onMouseDown={keepFocus} onClick={restart}>
+          <Icon name="restart" />
+        </button>
+      )}
       <button type="button" className="rf-iconbtn" aria-label="Pause" title={tip('Pause', pauseCode)} onMouseDown={keepFocus} onClick={pause}>
         <Icon name="pause" />
       </button>
@@ -144,6 +151,7 @@ const GUIDE_ROWS: GuideRow[] = [
   { actions: ['left', 'right'], name: 'Steer', detail: 'Yaw in the air' },
   { actions: ['rollLeft', 'rollRight'], name: 'Roll', detail: 'In the air' },
   { actions: ['boost'], name: 'Thrusters' },
+  { actions: ['jump'], name: 'Vertical booster', detail: 'Hop, or cushion a landing' },
   { actions: ['stabilize'], name: 'Stabilize', detail: 'Hold to level the car' },
   { actions: ['vacuum'], name: 'Vacuum', detail: 'Hold to stick to the track', vacuumOnly: true },
   { actions: ['restart'], name: 'Restart' },

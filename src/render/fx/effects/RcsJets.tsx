@@ -392,6 +392,10 @@ export function RcsJets() {
 
     if (!v.crashed) rcsJetLevels(v.rcs.pitch, v.rcs.yaw, v.rcs.roll, st.target);
     else st.target.fill(0);
+    // vertical booster: the four underbody ports (jet direction = chassis down) fire together
+    if (!v.crashed && v.jumpLevel > 0.02) {
+      for (let i = 0; i < PORTS; i++) if (RCS_PORTS[i].dir[1] < -0.5) st.target[i] = Math.max(st.target[i], v.jumpLevel);
+    }
 
     let any = false;
     const level = st.level;

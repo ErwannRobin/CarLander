@@ -34,6 +34,8 @@ export interface InputState {
   roll: number;
   /** Space (hold): rocket thrusters. */
   boost: boolean;
+  /** F (hold): vertical booster — underbody jets along the chassis up axis (hop / landing cushion). Shares the thruster fuel. */
+  jump: boolean;
   /** Enter (hold): vacuum adhesion system (only if the level enables it). */
   vacuum: boolean;
   /** Shift (hold): gyro stabilizer — auto-levels the car towards the predicted landing surface. */
@@ -45,6 +47,7 @@ export const NEUTRAL_INPUT: Readonly<InputState> = Object.freeze({
   steer: 0,
   roll: 0,
   boost: false,
+  jump: false,
   vacuum: false,
   stabilize: false,
 });
@@ -58,6 +61,7 @@ export type ControlAction =
   | 'rollLeft'
   | 'rollRight'
   | 'boost'
+  | 'jump'
   | 'vacuum'
   | 'stabilize'
   | 'restart'
@@ -129,6 +133,10 @@ export interface VehicleState {
   boosting: boolean;
   /** 0..1 smoothed thrust level for visuals/audio. */
   boostLevel: number;
+  /** Vertical booster firing (underbody jets). */
+  jumping: boolean;
+  /** 0..1 smoothed vertical booster level for visuals. */
+  jumpLevel: number;
   /** 0..1 remaining fuel. */
   fuel: number;
   /** Air-control activity per axis, -1..1, in chassis-local axes (pitch about +X, yaw about +Y, roll: + = roll right). Drives RCS jet visuals. */
@@ -317,6 +325,8 @@ export type GameEvent =
   | { type: 'trick'; trick: TrickInstance }
   | { type: 'boostStart' }
   | { type: 'boostEnd' }
+  | { type: 'jumpStart' }
+  | { type: 'jumpEnd' }
   | { type: 'fuelEmpty' }
   | { type: 'vacuumOn' }
   | { type: 'vacuumOff' }
@@ -537,6 +547,8 @@ export interface Settings {
   /** Weak automatic leveling when no rotation input is held in the air. */
   flightAssist: boolean;
   showTrajectory: boolean;
+  /** Touch devices: steer by tilting the phone like a steering wheel (falls back to an on-screen stick when off or unavailable). */
+  tiltSteering: boolean;
   bindings: Record<ControlAction, string[]>; // KeyboardEvent.code values
 }
 

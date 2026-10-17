@@ -414,7 +414,8 @@ export class VehicleLayers {
     this.squealGain.set(0.09 * this.squeal * (0.8 + 0.2 * fl) * this.m('squeal'), t);
 
     // --- rocket ---------------------------------------------------------------
-    const b = clamp(fin(v.boostLevel), 0, 1);
+    // the vertical booster reuses the rocket roar, a little softer
+    const b = clamp(Math.max(fin(v.boostLevel), 0.8 * fin(v.jumpLevel)), 0, 1);
     const jit = this.jitter.step(dt);
     this.roarGain.set(0.18 * Math.pow(b, 1.1) * this.m('rocket'), t);
     this.roarCut.set((420 + 2600 * b) * pitch * (1 + 0.05 * jit), t);
