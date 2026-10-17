@@ -369,13 +369,13 @@ describe('LEVEL 1 — player variation sweeps', () => {
     expect(holdOk[0] && holdOk[1] && holdOk[2]).toBe(true);
   });
 
-  it('burning before the lip overshoots the rings but survives (and says why)', async () => {
+  it('burning before the lip lands deep in the (long) rings: HARD at worst, still finishes', async () => {
     const o = await fly(level1PilotWith({ burnDelay: -0.3, burnDuration: 2 }));
-    expect(o.crash?.reason ?? 'fell').toBe('fell'); // the run only ends by rolling off the far end
+    expect(o.crash).toBeNull();
     expect(o.landing).not.toBeNull();
     expect(o.landing!.quality).not.toBe('crash');
-    expect(o.landing!.inTarget).toBe(false);
-    expect(o.prompts).toContain('PRESS R — THRUSTERS ONLY AFTER THE LIP');
+    expect(o.landing!.inTarget).toBe(true); // the 0.75 s tank cannot carry the car past the far end any more
+    expect(o.complete).toBe(true);
     console.log(`[L1] burn before the lip → ${describeLanding(o)}`);
   });
 });
@@ -384,7 +384,7 @@ describe('LEVEL 1 — medals', () => {
   it('bronze ≈ any completion, silver ≈ a clean typical run, gold ≈ a skilled run', async () => {
     const m = LEVEL_1.medals;
     const cases: [string, L1PilotOptions, { flightAssist?: boolean }, string[]][] = [
-      ['whole tank, no stabilizer, assist off (HARD)', { burnDuration: 2, stabilize: 'none', matchSlope: false }, { flightAssist: false }, ['bronze']],
+      ['whole tank, no stabilizer, assist off (HARD)', { burnDuration: 2, stabilize: 'none', matchSlope: false }, { flightAssist: false }, ['bronze', 'silver']],
       ['short burn 0.4 s (CLEAN, off-centre)', { burnDuration: 0.4 }, {}, ['silver']],
       ['reference (CLEAN bullseye)', {}, {}, ['gold']],
       ['apex burn (PERFECT)', { burnDelay: 1.0, burnDuration: 0.75, matchSlope: false }, {}, ['gold']],

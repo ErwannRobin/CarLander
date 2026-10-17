@@ -470,6 +470,13 @@ export interface FloatingHintDef {
   objectiveId?: string;
 }
 
+export interface TouchAssistDef {
+  /** The pitch axis (tilt gas / brake) is ignored in the air: a phone still tipped forward would nose-dive. */
+  ignorePitch: boolean;
+  /** The stabilizer is held automatically from this many seconds after lift-off. */
+  autoStabilize: number;
+}
+
 export interface LevelDef {
   id: LevelId;
   name: string;
@@ -508,6 +515,8 @@ export interface LevelDef {
    */
   finish: { zoneId: string; minQuality: Exclude<LandingQuality, 'crash'>; settleTime: number };
   medals: { bronze: number; silver: number; gold: number };
+  /** Touch controls only: beginner help in the air (see sim/touchAssist). */
+  touchAssist?: TouchAssistDef;
   /** Optional camera fly-in for the level intro (render). */
   intro?: { from: V3; lookAt: V3; duration: number };
 }
