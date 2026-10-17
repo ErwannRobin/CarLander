@@ -15,7 +15,7 @@
  * Tuned with tests/levels/level1.test.ts (sweeps of run-up speed, burn start/duration, stabilizer):
  *  - full throttle, no thrust → lands on the apron (≈ 130 m from the lip), HARD but safe, short of
  *    the target → retry advice;
- *  - full throttle + any burn of ≥ 0.3 s started 0–1.2 s after the lip (the whole 0.75 s tank
+ *  - full throttle + any burn of ≥ 0.3 s started 0–1.2 s after the lip (the whole 1 s tank
  *    included) → in the target, CLEAN in most of that window, PERFECT with an apex burn.
  * Readability: a soft-landing slope is tangent to the trajectory, so it is never visible from the
  * lip; the decor frames it instead (beacons + TARGET gate above the start of the rings, the FINISH
@@ -104,8 +104,8 @@ export const LEVEL_1: LevelDef = {
   spawn: { position: [0, 0.36, -30], yawDeg: 0, speed: 18 },
   killY: KILL_Y,
   vacuumEnabled: false,
-  // a short burst: the whole tank (0.75 s) still lands inside the rings, from any start up to 1.2 s after the lip
-  fuel: { capacity: 0.75, regenPerSec: 0.4, regenDelay: 1.2, start: 1 },
+  // a 1 s tank: the whole tank still lands inside the rings when burned after the lip (from before the lip it flies past the far end)
+  fuel: { capacity: 1, regenPerSec: 0.4, regenDelay: 1.2, start: 1 },
   pieces: [
     {
       // start plaza behind the spawn: the runway grows out of a facility platform (piers / underside: decor)

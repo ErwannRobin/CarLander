@@ -370,11 +370,12 @@ describe('LEVEL 1 — player variation sweeps', () => {
   });
 
   it('burning before the lip lands deep in the (long) rings: HARD at worst, still finishes', async () => {
-    const o = await fly(level1PilotWith({ burnDelay: -0.3, burnDuration: 2 }));
+    // 0.75 s of a 1 s tank (holding the whole tank from before the lip flies past the far end: a crash)
+    const o = await fly(level1PilotWith({ burnDelay: -0.3, burnDuration: 0.75 }));
     expect(o.crash).toBeNull();
     expect(o.landing).not.toBeNull();
     expect(o.landing!.quality).not.toBe('crash');
-    expect(o.landing!.inTarget).toBe(true); // the 0.75 s tank cannot carry the car past the far end any more
+    expect(o.landing!.inTarget).toBe(true); // a 0.75 s burn cannot carry the car past the far end
     expect(o.complete).toBe(true);
     console.log(`[L1] burn before the lip → ${describeLanding(o)}`);
   });

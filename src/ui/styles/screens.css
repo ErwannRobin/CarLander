@@ -197,6 +197,23 @@
   font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
   color: var(--rf-ink-3);
 }
+.rf-title__credit {
+  margin: 0;
+  padding-left: max(0px, calc(6.5vw - var(--rf-edge)));
+  font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
+  letter-spacing: 0.04em;
+  color: var(--rf-ink-3);
+}
+.rf-title__credit a {
+  color: var(--rf-ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--rf-ink-3);
+  text-underline-offset: 3px;
+}
+.rf-title__credit a:hover,
+.rf-title__credit a:focus-visible {
+  color: var(--rf-ink);
+}
 .rf-title__medals {
   display: inline-flex;
   gap: calc(var(--rf-u) * 6);

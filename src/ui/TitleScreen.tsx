@@ -98,6 +98,12 @@ export function TitleScreen() {
                 : `${completed} of ${LEVEL_IDS.length} levels complete`}
           </span>
         </div>
+        <p className="rf-title__credit">
+          Prompted with love by{' '}
+          <a href="https://erwann.app" target="_blank" rel="noopener" data-nav>
+            Erwann
+          </a>
+        </p>
         <div className="rf-ruler" aria-hidden="true">
           <span className="rf-ruler__track" />
         </div>
