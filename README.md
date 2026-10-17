@@ -24,12 +24,19 @@ npm test           # headless physics, sim and level tests
 | Steer | A / D (or ← / →) | In the air: yaw |
 | Roll | Q / E | Air only |
 | Thrusters | Space | Uses fuel, refills on the ground |
+| Vertical booster | F | Underbody jets: hop, or cushion a landing. Same fuel as the thrusters |
 | Stabilizer | Shift | Levels the car toward the landing surface |
 | Vacuum | Enter (hold) | Level 3: stick to the crescent and drive upside down |
 | Restart | R | |
 | Pause | Esc / P | |
 
-Keys can be remapped in Settings. Gamepads and touch controls are supported.
+Keys can be remapped in Settings. Gamepads (B = vertical booster) and touch controls are supported.
+
+**On a phone** (landscape): tilt the phone like a steering wheel to steer. Left thumb: GAS and BRAKE. Right thumb:
+THRUST and JUMP (the vertical booster); VACUUM appears on Level 3, STABILIZE and ROLL appear in the air.
+Drag a finger over the scene to look around; the camera returns behind the car on its own. Tilt steering needs
+the motion sensor, which browsers only give to secure pages (https, or localhost) and, on iPhone, after you
+accept the prompt on your first tap. Otherwise (or with Settings → Tilt steering off) an on-screen stick steers.
 
 ## Levels
 

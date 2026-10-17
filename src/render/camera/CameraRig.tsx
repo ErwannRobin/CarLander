@@ -11,6 +11,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { CAMERA_PRIORITY, runtime } from '@/game/runtime';
+import { cameraLook, resetCameraLook } from '@/input/touchInput';
 import { cameraServices } from './cameraServices';
 import { damp, noise1, smoothDampVec3, smoothstep } from './smoothing';
 
@@ -20,6 +21,10 @@ const DEG = Math.PI / 180;
 const LIFTS = [1.5, 3, 5, 8];
 /** Never pull the camera closer than this to the car focus (inside the body = black frames). */
 const MIN_BOOM = 3.2;
+/** Free look (touch drag): seconds the camera stays where it was left, and the lowest / highest boom elevation (rad). */
+const LOOK_HOLD = 2;
+const LOOK_MIN_ELEV = -0.12;
+const LOOK_MAX_ELEV = 1.3;
 
 type Mode = 'chase' | 'intro' | 'crash' | 'complete';
 
@@ -87,6 +92,7 @@ export function CameraRig() {
         s.mode = 'chase';
         s.initialized = false;
         s.trauma = 0;
+        resetCameraLook();
       }),
       runtime.events.on('crash', () => {
         s.mode = 'crash';
@@ -107,6 +113,7 @@ export function CameraRig() {
       runtime.events.on('wheelSlam', (e) => (s.trauma = Math.min(1, s.trauma + e.strength * 0.35))),
       runtime.events.on('impact', (e) => (s.trauma = Math.min(1, s.trauma + e.strength * 0.5))),
       runtime.events.on('boostStart', () => (s.trauma = Math.min(1, s.trauma + 0.12))),
+      runtime.events.on('jumpStart', () => (s.trauma = Math.min(1, s.trauma + 0.1))),
       runtime.events.on('vacuumEngaged', () => (s.trauma = Math.min(1, s.trauma + 0.15))),
     ];
     return () => offs.forEach((o) => o());
@@ -219,6 +226,38 @@ export function CameraRig() {
       desired.set(P.x + Math.cos(s.orbit) * 10.5, P.y + 3.4, P.z + Math.sin(s.orbit) * 10.5);
       lookTarget.copy(P).addScaledVector(WORLD_UP, 0.5);
       s.up.lerp(WORLD_UP, damp(2, dt)).normalize();
+    }
+
+    // ---------------- free look (touch drag) ----------------
+    // The finger swings the boom around the car; a while after it lifts the camera drifts back behind.
+    const look = cameraLook;
+    if (look.dragging) look.idle = 0;
+    else {
+      look.idle += dt;
+      if (look.idle > LOOK_HOLD && (look.yaw !== 0 || look.pitch !== 0)) {
+        const k = damp(2.4, dt);
+        look.yaw -= look.yaw * k;
+        look.pitch -= look.pitch * k;
+        if (Math.abs(look.yaw) < 1e-3 && Math.abs(look.pitch) < 1e-3) {
+          look.yaw = 0;
+          look.pitch = 0;
+        }
+      }
+    }
+    if (s.mode === 'chase' && (look.yaw !== 0 || look.pitch !== 0)) {
+      tmp.copy(desired).sub(carFocus);
+      upQ.setFromAxisAngle(s.up, look.yaw);
+      tmp.applyQuaternion(upQ);
+      const len = tmp.length();
+      if (len > 1e-3) {
+        const elev = Math.asin(Math.max(-1, Math.min(1, tmp.dot(s.up) / len)));
+        const lift = Math.max(LOOK_MIN_ELEV - elev, Math.min(LOOK_MAX_ELEV - elev, look.pitch));
+        // swinging the boom about up × boom lowers the camera, so raise it with the negative angle
+        camRight.crossVectors(s.up, tmp).normalize();
+        upQ.setFromAxisAngle(camRight, -lift);
+        tmp.applyQuaternion(upQ);
+        desired.copy(carFocus).add(tmp);
+      }
     }
 
     // ---------------- collision avoidance ----------------

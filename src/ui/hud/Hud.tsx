@@ -9,6 +9,10 @@
  *   │                 PERFECT LANDING                        trick feed  │
  *   │                                                                     │
  *   └ speed/thrust · vacuum ──── altitude · (attitude) · distance ─ guide ┘
+ *
+ * On touch devices (`data-touch`) the HUD is cut down to what the player needs mid-flight:
+ * pause, the objective title, the score, the fuel bar with the speed, the attitude dial while
+ * airborne, and the prompt / landing / trick feedback.
  */
 import { useMemo, useState } from 'react';
 import { keyLabel } from '@/input/keyNames';
@@ -61,7 +65,7 @@ export function Hud() {
         <ObjectivePanel />
       </div>
       <div className="rf-hud__tr">
-        <HudButtons guideOpen={guideOpen} guideKey={guideKey} onToggleGuide={() => setGuideOpen((o) => !o)} />
+        <HudButtons guideOpen={guideOpen} guideKey={guideKey} onToggleGuide={() => setGuideOpen((o) => !o)} touch={touch} />
         <ScoreReadout />
       </div>
       <TrickFeed />
@@ -69,7 +73,7 @@ export function Hud() {
       <LandingBanner />
       <SpeedCluster />
       <FlightStrip />
-      {guideOpen && (
+      {guideOpen && !touch && (
         <div className="rf-hud__br">
           <ControlGuide guideKey={guideKey} onClose={() => setGuideOpen(false)} />
         </div>

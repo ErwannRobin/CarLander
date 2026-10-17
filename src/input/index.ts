@@ -1,6 +1,7 @@
 export { InputManager, type InputAction, type Bindings } from './InputManager';
 export { connectInputToStores, useInputManager } from './connect';
-export { touchInput, resetTouchInput, type TouchInputState } from './touchInput';
+export { touchInput, cameraLook, resetTouchInput, resetCameraLook, type TouchInputState } from './touchInput';
+export { initGyro, requestGyro, setGyroEnabled, getGyroStatus, subscribeGyro, tiltAngleDeg, steerFromTiltDeg, type GyroStatus } from './gyro';
 export { getInputMode, setInputMode, subscribeInputMode, type InputMode } from './inputMode';
 export { startPadMenu, type MenuCommand } from './padMenu';
 export {

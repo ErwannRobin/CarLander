@@ -1,19 +1,28 @@
 /**
- * On-screen controls for coarse pointers: a floating left thumb stick (x = steer / yaw,
- * y = throttle / pitch) and a right-thumb button cluster (THRUST, STABILIZE, VACUUM when the
- * level has it, ROLL L / ROLL R). Pause and restart are the HUD's icon buttons (enlarged to
- * touch size on coarse pointers).
+ * On-screen controls for coarse pointers.
  *
- * Multi-touch safe: each control tracks its own pointer ids with pointer capture.
- * Writes the module-level `touchInput` (src/input/touchInput.ts) — no React state per move.
+ *  - Steering: the phone itself (tilt it like a steering wheel, src/input/gyro.ts). GAS and BRAKE
+ *    pedals sit under the left thumb (in the air they pitch the nose down / up).
+ *    Without a usable tilt sensor (or with the setting off) a floating left thumb stick steers and
+ *    drives instead.
+ *  - Right thumb: THRUST and JUMP (the vertical booster). Above them, only when they matter:
+ *    VACUUM (levels that have it), and in the air STABILIZE and ROLL L / ROLL R.
+ *  - Camera: drag a finger over the scene to orbit the chase camera; it drifts back behind the
+ *    car a moment after the finger lifts, and a tap puts it back at once.
+ *
+ * Pause is the HUD's only button. Multi-touch safe: each control tracks its own pointer ids with
+ * pointer capture. Writes the module-level `touchInput` / `cameraLook` (src/input/touchInput.ts) —
+ * no React state per move.
  */
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { initGyro, setGyroEnabled } from '@/input/gyro';
 import { setInputMode } from '@/input/inputMode';
-import { resetTouchInput, touchInput } from '@/input/touchInput';
+import { cameraLook, resetCameraLook, resetTouchInput, touchInput } from '@/input/touchInput';
 import { useAppStore } from '@/state/appStore';
 import { useHudStore } from '@/state/hudStore';
+import { useSettingsStore } from '@/state/settingsStore';
 import { Icon, type IconName } from './components/Icon';
-import { useCoarsePointer } from './hooks';
+import { useCoarsePointer, useTiltSteering } from './hooks';
 import { registerTouchUi } from './touchUi';
 import './styles/tokens.css';
 import './styles/touch.css';
@@ -152,12 +161,15 @@ function TouchButton({
   icon,
   variant,
   enabled,
+  hidden = false,
   onChange,
 }: {
   label: string;
   icon: IconName;
   variant: string;
   enabled: boolean;
+  /** Faded out and click-through (controls that only matter in some situations). */
+  hidden?: boolean;
   onChange: (pressed: boolean) => void;
 }) {
   const pointers = useRef(new Set<number>());
@@ -202,6 +214,7 @@ function TouchButton({
       type="button"
       className={`rf-tbtn rf-tbtn--${variant}`}
       data-pressed={pressed || undefined}
+      data-hidden={hidden || undefined}
       aria-label={label}
       aria-pressed={pressed}
       tabIndex={-1}
@@ -217,46 +230,177 @@ function TouchButton({
   );
 }
 
+/* ------------------------------------------------------------------ */
+/* Camera look                                                         */
+/* ------------------------------------------------------------------ */
+
+/** Radians of orbit per dragged pixel. */
+const LOOK_YAW_PER_PX = 0.0075;
+const LOOK_PITCH_PER_PX = 0.0055;
+/** Highest and lowest the boom may be swung (rad, relative to the framing the camera would use). */
+const LOOK_PITCH_MAX = 1.1;
+const LOOK_PITCH_MIN = -0.25;
+/** A touch that moves less than this (px) and ends within TAP_MS is a tap. */
+const TAP_SLOP = 10;
+const TAP_MS = 260;
+
+const wrapPi = (a: number) => a - Math.PI * 2 * Math.round(a / (Math.PI * 2));
+
+/** The whole screen is a camera handle (under the HUD and the buttons). */
+function LookPad({ enabled }: { enabled: boolean }) {
+  const drag = useRef({ id: -1, x: 0, y: 0, t: 0, moved: 0 });
+
+  const end = (cancel: boolean, at = 0) => {
+    const d = drag.current;
+    if (d.id === -1) return;
+    const tap = !cancel && d.moved < TAP_SLOP && at - d.t < TAP_MS;
+    d.id = -1;
+    if (tap) resetCameraLook();
+    cameraLook.dragging = false;
+    cameraLook.idle = 0;
+  };
+
+  useEffect(() => {
+    if (!enabled) end(true);
+  }, [enabled]);
+  useEffect(() => () => end(true), []);
+
+  const onDown = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (!enabled || drag.current.id !== -1) return;
+    e.preventDefault();
+    capture(e.currentTarget, e.pointerId);
+    setInputMode('touch');
+    drag.current = { id: e.pointerId, x: e.clientX, y: e.clientY, t: e.timeStamp, moved: 0 };
+    cameraLook.dragging = true;
+  };
+  const onMove = (e: ReactPointerEvent<HTMLDivElement>) => {
+    const d = drag.current;
+    if (e.pointerId !== d.id) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    d.x = e.clientX;
+    d.y = e.clientY;
+    d.moved += Math.abs(dx) + Math.abs(dy);
+    // like grabbing the scene: dragging right swings the camera round to the car's left, dragging down lifts it
+    cameraLook.yaw = wrapPi(cameraLook.yaw - dx * LOOK_YAW_PER_PX);
+    cameraLook.pitch = Math.min(LOOK_PITCH_MAX, Math.max(LOOK_PITCH_MIN, cameraLook.pitch + dy * LOOK_PITCH_PER_PX));
+  };
+  const onUp = (e: ReactPointerEvent<HTMLDivElement>) => {
+    if (e.pointerId === drag.current.id) end(e.type !== 'pointerup', e.timeStamp);
+  };
+
+  return (
+    <div
+      className="rf-layer rf-look"
+      data-disabled={!enabled || undefined}
+      data-interactive
+      onPointerDown={onDown}
+      onPointerMove={onMove}
+      onPointerUp={onUp}
+      onPointerCancel={onUp}
+      onLostPointerCapture={onUp}
+    />
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* First-run hint                                                      */
+/* ------------------------------------------------------------------ */
+
+/** The hint is shown once per page load: the controls are not documented anywhere else on a phone. */
+let hintShown = false;
+
+function TouchHint({ tilt }: { tilt: boolean }) {
+  const [show] = useState(!hintShown);
+  useEffect(() => {
+    hintShown = true;
+  }, []);
+  if (!show) return null;
+  return (
+    <div className="rf-touch__hint" aria-hidden="true">
+      {tilt ? 'Tilt the phone to steer' : 'Drag the stick to steer'} · Drag the scene to look around
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Layer                                                               */
+/* ------------------------------------------------------------------ */
+
 function TouchLayer() {
   const overlay = useAppStore((s) => s.overlay);
   const vacuumAvailable = useHudStore((s) => s.vacuum.available);
+  const airborne = useHudStore((s) => s.airborne);
+  const tiltSetting = useSettingsStore((s) => s.tiltSteering);
+  const tilt = useTiltSteering();
   const enabled = overlay === 'none';
   const roll = useRef({ left: false, right: false });
+  const pedals = useRef({ gas: false, brake: false });
 
   useEffect(() => {
     touchInput.active = true;
+    resetCameraLook();
+    initGyro();
     const unregister = registerTouchUi();
     return () => {
       resetTouchInput();
+      resetCameraLook();
       touchInput.active = false;
       unregister();
     };
   }, []);
+  useEffect(() => {
+    setGyroEnabled(tiltSetting);
+  }, [tiltSetting]);
 
   const setRoll = (side: 'left' | 'right', v: boolean) => {
     roll.current[side] = v;
     touchInput.roll = (roll.current.right ? 1 : 0) - (roll.current.left ? 1 : 0);
   };
+  const setPedal = (pedal: 'gas' | 'brake', v: boolean) => {
+    pedals.current[pedal] = v;
+    touchInput.throttle = (pedals.current.gas ? 1 : 0) - (pedals.current.brake ? 1 : 0);
+  };
 
   return (
-    <div className="rf-layer rf-touch" data-disabled={!enabled || undefined} inert={!enabled || undefined}>
-      <Stick enabled={enabled} />
-      <div className="rf-touch__buttons">
-        <TouchButton label="Thrust" icon="thrust" variant="thrust" enabled={enabled} onChange={(v) => (touchInput.boost = v)} />
-        <TouchButton
-          label="Stabilize"
-          icon="stabilize"
-          variant="stabilize"
-          enabled={enabled}
-          onChange={(v) => (touchInput.stabilize = v)}
-        />
-        {vacuumAvailable && (
-          <TouchButton label="Vacuum" icon="vacuum" variant="vacuum" enabled={enabled} onChange={(v) => (touchInput.vacuum = v)} />
+    <>
+      <LookPad enabled={enabled} />
+      <div
+        className="rf-layer rf-touch"
+        data-scheme={tilt ? 'tilt' : 'stick'}
+        data-disabled={!enabled || undefined}
+        inert={!enabled || undefined}
+      >
+        <TouchHint tilt={tilt} />
+        {tilt ? (
+          <div className="rf-touch__pedals">
+            <TouchButton label="Brake" icon="brake" variant="brake" enabled={enabled} onChange={(v) => setPedal('brake', v)} />
+            <TouchButton label="Gas" icon="gas" variant="gas" enabled={enabled} onChange={(v) => setPedal('gas', v)} />
+          </div>
+        ) : (
+          <Stick enabled={enabled} />
         )}
-        <TouchButton label="Roll L" icon="rollLeft" variant="roll-l" enabled={enabled} onChange={(v) => setRoll('left', v)} />
-        <TouchButton label="Roll R" icon="rollRight" variant="roll-r" enabled={enabled} onChange={(v) => setRoll('right', v)} />
+        <div className="rf-touch__main">
+          <TouchButton label="Thrust" icon="thrust" variant="thrust" enabled={enabled} onChange={(v) => (touchInput.boost = v)} />
+          <TouchButton label="Jump" icon="jump" variant="jump" enabled={enabled} onChange={(v) => (touchInput.jump = v)} />
+        </div>
+        <div className="rf-touch__aux">
+          {vacuumAvailable && (
+            <TouchButton label="Vacuum" icon="vacuum" variant="vacuum" enabled={enabled} onChange={(v) => (touchInput.vacuum = v)} />
+          )}
+          <TouchButton
+            label="Stabilize"
+            icon="stabilize"
+            variant="stabilize"
+            enabled={enabled && airborne}
+            hidden={!airborne}
+            onChange={(v) => (touchInput.stabilize = v)}
+          />
+          <TouchButton label="Roll R" icon="rollRight" variant="roll" enabled={enabled && airborne} hidden={!airborne} onChange={(v) => setRoll('right', v)} />
+          <TouchButton label="Roll L" icon="rollLeft" variant="roll" enabled={enabled && airborne} hidden={!airborne} onChange={(v) => setRoll('left', v)} />
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

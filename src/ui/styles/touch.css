@@ -1,5 +1,18 @@
 /* On-screen touch controls (coarse pointers). Quiet until touched. */
 
+/* Camera handle: the whole screen, under the HUD (z 10) so its Pause button stays tappable. */
+.rf-look {
+  z-index: 5;
+  pointer-events: auto;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.rf-look[data-disabled] {
+  pointer-events: none;
+}
+
 .rf-touch {
   z-index: 30;
   transition: opacity var(--rf-t2) var(--rf-ease);
@@ -78,23 +91,46 @@
 }
 
 /* ------------------------------------------------------------------ */
-/* Button cluster (right thumb arc)                                    */
+/* Buttons                                                             */
 /* ------------------------------------------------------------------ */
 
-.rf-touch__buttons {
+/* Left thumb: BRAKE next to a bigger GAS (tilt steering). */
+.rf-touch__pedals {
+  position: absolute;
+  left: calc(var(--rf-pad-l) + var(--rf-u) * 2);
+  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 2);
+  display: flex;
+  align-items: flex-end;
+  gap: calc(var(--rf-u) * 14);
+}
+/* Right thumb: JUMP next to THRUST, then a row of situational buttons above them. */
+.rf-touch__main,
+.rf-touch__aux {
   position: absolute;
   right: calc(var(--rf-pad-r) + var(--rf-u) * 2);
-  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 2);
-  width: calc(var(--rf-u) * 206);
-  height: calc(var(--rf-u) * 168);
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: flex-end;
 }
+.rf-touch__main {
+  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 2);
+  gap: calc(var(--rf-u) * 14);
+}
+.rf-touch__aux {
+  bottom: calc(var(--rf-pad-b) + var(--rf-u) * 120);
+  gap: calc(var(--rf-u) * 10);
+}
+
 .rf-tbtn {
-  position: absolute;
+  position: relative;
+  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: calc(var(--rf-u) * 3);
+  width: calc(var(--rf-u) * 58);
+  height: calc(var(--rf-u) * 58);
   padding: 0;
   border-radius: 50%;
   border: 1px solid rgba(241, 237, 230, 0.34);
@@ -109,13 +145,18 @@
   -webkit-tap-highlight-color: transparent;
   transition:
     transform 90ms var(--rf-ease),
+    opacity 160ms var(--rf-ease),
     background-color 120ms var(--rf-ease),
     border-color 120ms var(--rf-ease),
     box-shadow 160ms var(--rf-ease);
 }
+.rf-tbtn[data-hidden] {
+  opacity: 0;
+  pointer-events: none;
+}
 .rf-tbtn__icon {
-  width: 42%;
-  height: 42%;
+  width: 46%;
+  height: 46%;
   pointer-events: none;
 }
 .rf-tbtn__label {
@@ -130,21 +171,43 @@
   border-color: rgba(241, 237, 230, 0.75);
   background: rgba(241, 237, 230, 0.2);
 }
+
+/* the small situational buttons are icon-only */
+.rf-touch__aux .rf-tbtn__label {
+  display: none;
+}
+
+/* the two big thumb buttons */
+.rf-tbtn--thrust,
+.rf-tbtn--gas {
+  width: calc(var(--rf-u) * 100);
+  height: calc(var(--rf-u) * 100);
+}
+.rf-tbtn--jump,
+.rf-tbtn--brake {
+  width: calc(var(--rf-u) * 84);
+  height: calc(var(--rf-u) * 84);
+}
+.rf-tbtn--thrust .rf-tbtn__icon,
+.rf-tbtn--gas .rf-tbtn__icon,
+.rf-tbtn--jump .rf-tbtn__icon,
+.rf-tbtn--brake .rf-tbtn__icon {
+  width: 36%;
+  height: 36%;
+}
+.rf-tbtn--thrust .rf-tbtn__label,
+.rf-tbtn--gas .rf-tbtn__label,
+.rf-tbtn--jump .rf-tbtn__label,
+.rf-tbtn--brake .rf-tbtn__label {
+  font-size: max(8.5px, calc(var(--rf-u) * 10));
+}
+
 .rf-tbtn--thrust {
-  right: 0;
-  bottom: 0;
-  width: calc(var(--rf-u) * 96);
-  height: calc(var(--rf-u) * 96);
   border-color: rgba(255, 122, 28, 0.65);
   box-shadow: inset 0 0 0 calc(var(--rf-u) * 4) rgba(255, 122, 28, 0.12);
 }
-.rf-tbtn--thrust .rf-tbtn__icon {
-  width: 34%;
-  height: 34%;
-  color: var(--rf-orange-hot);
-}
+.rf-tbtn--thrust .rf-tbtn__icon,
 .rf-tbtn--thrust .rf-tbtn__label {
-  font-size: max(8.5px, calc(var(--rf-u) * 10));
   color: var(--rf-orange-hot);
 }
 .rf-tbtn--thrust[data-pressed] {
@@ -156,17 +219,27 @@
 .rf-tbtn--thrust[data-pressed] .rf-tbtn__icon {
   color: var(--rf-ink);
 }
-.rf-tbtn--stabilize {
-  right: calc(var(--rf-u) * 110);
-  bottom: 0;
-  width: calc(var(--rf-u) * 66);
-  height: calc(var(--rf-u) * 66);
+
+/* JUMP is the cold-gas blue of the underbody jets */
+.rf-tbtn--jump {
+  border-color: rgba(127, 190, 255, 0.6);
+  box-shadow: inset 0 0 0 calc(var(--rf-u) * 4) rgba(127, 190, 255, 0.1);
 }
+.rf-tbtn--jump .rf-tbtn__icon,
+.rf-tbtn--jump .rf-tbtn__label {
+  color: #a9d3ff;
+}
+.rf-tbtn--jump[data-pressed] {
+  border-color: #7fbeff;
+  background: rgba(127, 190, 255, 0.28);
+  box-shadow: 0 0 28px -4px rgba(127, 190, 255, 0.85);
+}
+.rf-tbtn--jump[data-pressed] .rf-tbtn__label,
+.rf-tbtn--jump[data-pressed] .rf-tbtn__icon {
+  color: var(--rf-ink);
+}
+
 .rf-tbtn--vacuum {
-  right: calc(var(--rf-u) * 136);
-  bottom: calc(var(--rf-u) * 80);
-  width: calc(var(--rf-u) * 66);
-  height: calc(var(--rf-u) * 66);
   border-color: rgba(56, 232, 255, 0.55);
 }
 .rf-tbtn--vacuum .rf-tbtn__label,
@@ -178,24 +251,33 @@
   background: rgba(56, 232, 255, 0.24);
   box-shadow: 0 0 26px -4px rgba(56, 232, 255, 0.85);
 }
-.rf-tbtn--roll-l .rf-tbtn__label,
-.rf-tbtn--roll-r .rf-tbtn__label {
-  display: none;
+
+/* One-off hint at the start of the first run. */
+.rf-touch__hint {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--rf-pad-t) + var(--rf-u) * 56);
+  transform: translateX(-50%);
+  padding: calc(var(--rf-u) * 8) calc(var(--rf-u) * 14);
+  border-radius: calc(var(--rf-u) * 8);
+  background: rgba(14, 16, 19, 0.6);
+  font: 500 var(--rf-fs-sm) / 1.2 var(--rf-sans);
+  letter-spacing: 0.04em;
+  color: var(--rf-ink-2);
+  white-space: nowrap;
+  pointer-events: none;
+  animation: rf-touch-hint 6s ease both;
 }
-.rf-tbtn--roll-l .rf-tbtn__icon,
-.rf-tbtn--roll-r .rf-tbtn__icon {
-  width: 50%;
-  height: 50%;
-}
-.rf-tbtn--roll-l,
-.rf-tbtn--roll-r {
-  bottom: calc(var(--rf-u) * 108);
-  width: calc(var(--rf-u) * 56);
-  height: calc(var(--rf-u) * 56);
-}
-.rf-tbtn--roll-l {
-  right: calc(var(--rf-u) * 66);
-}
-.rf-tbtn--roll-r {
-  right: 0;
+@keyframes rf-touch-hint {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
 }

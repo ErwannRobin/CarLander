@@ -13,7 +13,7 @@ import { useAppStore } from '@/state/appStore';
 import { BINDING_SLOTS, CONTROL_ACTIONS, useSettingsStore } from '@/state/settingsStore';
 import { Segmented, Slider, Switch } from './components/Controls';
 import { Icon } from './components/Icon';
-import { useAutoFocus, useKeyDown, useKeyLabelsVersion, useRepeatActivationGuard } from './hooks';
+import { useAutoFocus, useCoarsePointer, useKeyDown, useKeyLabelsVersion, useRepeatActivationGuard } from './hooks';
 import './styles/tokens.css';
 import './styles/components.css';
 import './styles/overlays.css';
@@ -217,6 +217,8 @@ export function SettingsPanel() {
   const cameraShake = useSettingsStore((s) => s.cameraShake);
   const flightAssist = useSettingsStore((s) => s.flightAssist);
   const showTrajectory = useSettingsStore((s) => s.showTrajectory);
+  const tiltSteering = useSettingsStore((s) => s.tiltSteering);
+  const coarse = useCoarsePointer();
   const actions = useSettingsStore.getState();
   const [fullscreen, setFullscreen, fullscreenSupported] = useFullscreen();
 
@@ -276,6 +278,14 @@ export function SettingsPanel() {
                 checked={flightAssist}
                 onChange={actions.setFlightAssist}
               />
+              {coarse && (
+                <Switch
+                  label="Tilt steering"
+                  detail="Turn the phone like a steering wheel. Off: steer with an on-screen stick"
+                  checked={tiltSteering}
+                  onChange={actions.setTiltSteering}
+                />
+              )}
               <Switch
                 label="Trajectory preview"
                 detail="Shows the predicted flight path and landing spot"
@@ -290,7 +300,7 @@ export function SettingsPanel() {
               </h2>
               <p className="rf-settings__note rf-settings__note--inline">
                 {/* non-breaking spaces keep each button with its verb */}
-                Left stick steers and pitches, RT&nbsp;and&nbsp;LT drive, A&nbsp;thrusts, RB&nbsp;vacuum, LB&nbsp;stabilize,
+                Left stick steers and pitches, RT&nbsp;and&nbsp;LT drive, A&nbsp;thrusts, B&nbsp;jumps, RB&nbsp;vacuum, LB&nbsp;stabilize,
                 X&nbsp;and&nbsp;Y roll. Start&nbsp;pauses, Back&nbsp;restarts. Menus: D-pad, A&nbsp;and&nbsp;B.
               </p>
             </section>

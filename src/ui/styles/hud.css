@@ -1122,3 +1122,120 @@
     padding-bottom: calc(var(--rf-u) * 3);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Touch: cut-down HUD                                                 */
+/* ------------------------------------------------------------------ */
+
+/* Objective: the title only (the prompt carries the key moments). */
+.rf-hud[data-touch] .rf-objective__steps,
+.rf-hud[data-touch] .rf-objective__text,
+.rf-hud[data-touch] .rf-objective__hints {
+  display: none;
+}
+.rf-hud[data-touch] .rf-objective {
+  width: auto;
+  max-width: 38vw;
+  padding: calc(var(--rf-u) * 8) calc(var(--rf-u) * 13);
+}
+
+/* Score: the number alone. */
+.rf-hud[data-touch] .rf-score {
+  min-width: 0;
+  padding: calc(var(--rf-u) * 7) calc(var(--rf-u) * 12);
+}
+.rf-hud[data-touch] .rf-score__label,
+.rf-hud[data-touch] .rf-score__chain {
+  display: none;
+}
+
+/* Flight bar: altitude and the attitude dial; air time, distance and points at stake are dropped. */
+.rf-hud[data-touch] .rf-flight > .rf-flight__stat:nth-child(2) {
+  display: none;
+}
+
+/* Landing banner: the verdict and the points (plus "on target"). */
+.rf-hud[data-touch] .rf-landing__stat:not(.rf-landing__stat--target) {
+  display: none;
+}
+
+/* Fuel bar + speed, in place of the dial. */
+.rf-gauge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--rf-u) * 6);
+  padding: calc(var(--rf-u) * 8) calc(var(--rf-u) * 12);
+  border-radius: calc(var(--rf-u) * 8);
+  background: rgba(14, 16, 19, 0.42);
+}
+.rf-gauge__fuel {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 8);
+}
+.rf-gauge__icon {
+  width: max(14px, calc(var(--rf-u) * 16));
+  height: max(14px, calc(var(--rf-u) * 16));
+  flex: none;
+  color: var(--rf-orange-hot);
+}
+.rf-gauge__bar {
+  width: max(96px, calc(var(--rf-u) * 124));
+  height: max(5px, calc(var(--rf-u) * 6));
+  overflow: hidden;
+  border-radius: 3px;
+  background: rgba(198, 203, 209, 0.22);
+}
+.rf-gauge__bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  transform-origin: 0 50%;
+  background: linear-gradient(90deg, var(--rf-orange), var(--rf-orange-hot));
+  transition: transform 120ms linear;
+}
+.rf-gauge[data-burning] .rf-gauge__bar > span {
+  box-shadow: 0 0 10px rgba(255, 122, 28, 0.7);
+}
+.rf-gauge[data-low] .rf-gauge__bar > span {
+  background: var(--rf-amber);
+}
+.rf-gauge[data-low] .rf-gauge__icon {
+  color: var(--rf-amber);
+}
+.rf-gauge__speed {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--rf-u) * 5);
+  font: 400 var(--rf-fs-lg) / 1 var(--rf-mono);
+  color: var(--rf-ink);
+}
+.rf-gauge__unit {
+  font: 500 var(--rf-fs-2xs) / 1 var(--rf-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--rf-ink-3);
+}
+.rf-gauge__empty {
+  position: absolute;
+  inset: -3px;
+  border-radius: calc(var(--rf-u) * 10);
+  box-shadow: 0 0 0 2px var(--rf-amber);
+  animation: rf-ping 800ms ease-out forwards;
+  pointer-events: none;
+}
+
+/* Vacuum (levels with it): name, state and suction bar, stacked above the fuel gauge. */
+.rf-hud[data-touch] .rf-vacuum {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  width: 100%;
+  padding: calc(var(--rf-u) * 8) calc(var(--rf-u) * 12);
+  gap: calc(var(--rf-u) * 7);
+}
+.rf-hud[data-touch] .rf-vacuum__foot {
+  display: none;
+}

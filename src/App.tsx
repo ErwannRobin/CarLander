@@ -5,6 +5,7 @@ import { initPhysics } from '@/game/physics/initPhysics';
 import { getLevel } from '@/game/levels';
 import { runtime } from '@/game/runtime';
 import type { LevelId } from '@/game/types';
+import { initGyro } from '@/input/gyro';
 import { GameCanvas } from '@/render/GameCanvas';
 import { GameController } from '@/render/scenes/GameController';
 import { GameScene } from '@/render/scenes/GameScene';
@@ -93,6 +94,17 @@ function useAudioWiring() {
   }, []);
 }
 
+/** Touch devices steer by tilting the phone: ask for the sensor early (iOS wants a tap, on the menus is fine). */
+function useTiltSetup() {
+  useEffect(() => {
+    try {
+      if (window.matchMedia('(pointer: coarse)').matches) initGyro();
+    } catch {
+      /* no matchMedia: not a touch device we can detect */
+    }
+  }, []);
+}
+
 /** Pause automatically when the tab is hidden or the window loses focus during play. */
 function useAutoPause() {
   useEffect(() => {
@@ -116,6 +128,7 @@ export default function App() {
   useBoot();
   useAudioWiring();
   useAutoPause();
+  useTiltSetup();
 
   const screen = useAppStore((s) => s.screen);
   const levelId = useAppStore((s) => s.levelId);

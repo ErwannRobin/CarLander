@@ -59,7 +59,7 @@ describe('trick detection (real flights)', () => {
     sim.drainEvents();
     const events: GameEvent[] = [];
     for (let i = 0; i < 120 * 5; i++) {
-      sim.step({ throttle: 0, steer: 0, roll: 0, boost: false, vacuum: false, stabilize: true });
+      sim.step({ throttle: 0, steer: 0, roll: 0, boost: false, jump: false, vacuum: false, stabilize: true });
       events.push(...sim.drainEvents());
     }
     const hang = ofType(events, 'trick').filter((e) => e.trick.kind === 'hangTime');

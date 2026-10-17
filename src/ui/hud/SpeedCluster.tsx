@@ -7,6 +7,7 @@
  * TUNING.maxSpeedBoost.
  */
 import { useState, type CSSProperties } from 'react';
+import { useTouchUiActive } from '../touchUi';
 import { KMH, TUNING } from '@/game/tuning';
 import { useHudStore } from '@/state/hudStore';
 import { Icon } from '../components/Icon';
@@ -100,7 +101,49 @@ function VacuumIndicator() {
   );
 }
 
+/**
+ * Touch layout: a thin fuel bar and the speed, nothing else. The bar is the shared tank of the
+ * thrusters and the vertical booster.
+ */
+function TouchGauge() {
+  const speedKmh = useHudStore((s) => s.speedKmh);
+  const fuel = useHudStore((s) => s.fuel);
+  const fuelPct = useHudStore((s) => s.fuelPct);
+  const burning = useHudStore((s) => s.boosting || s.jumping);
+  const [emptyFlash, setEmptyFlash] = useState(0);
+  useGameEvent('fuelEmpty', () => setEmptyFlash((n) => n + 1));
+  return (
+    <div className="rf-hud__bl">
+      <div
+        className="rf-gauge"
+        data-burning={burning || undefined}
+        data-low={fuel < 0.15 || undefined}
+        role="group"
+        aria-label={`Speed ${speedKmh} kilometres per hour, fuel ${fuelPct} percent`}
+      >
+        <div className="rf-gauge__fuel">
+          <Icon name="thrust" className="rf-gauge__icon" />
+          <span className="rf-gauge__bar">
+            <span style={{ transform: `scaleX(${Number.isFinite(fuel) ? Math.min(1, Math.max(0, fuel)) : 0})` }} />
+          </span>
+        </div>
+        <div className="rf-gauge__speed">
+          <span className="rf-num">{speedKmh}</span>
+          <span className="rf-gauge__unit">km/h</span>
+        </div>
+        {emptyFlash > 0 && <span key={emptyFlash} className="rf-gauge__empty" aria-hidden="true" />}
+      </div>
+      <VacuumIndicator />
+    </div>
+  );
+}
+
 export function SpeedCluster() {
+  const touch = useTouchUiActive();
+  return touch ? <TouchGauge /> : <SpeedDial />;
+}
+
+function SpeedDial() {
   const speedKmh = useHudStore((s) => s.speedKmh);
   const fuel = useHudStore((s) => s.fuel);
   const fuelPct = useHudStore((s) => s.fuelPct);

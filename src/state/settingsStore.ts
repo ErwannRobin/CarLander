@@ -18,6 +18,7 @@ export const CONTROL_ACTIONS: readonly ControlAction[] = [
   'rollLeft',
   'rollRight',
   'boost',
+  'jump',
   'vacuum',
   'stabilize',
   'restart',
@@ -38,6 +39,7 @@ export const DEFAULT_BINDINGS: Readonly<Record<ControlAction, readonly string[]>
   rollLeft: Object.freeze(['KeyQ']),
   rollRight: Object.freeze(['KeyE']),
   boost: Object.freeze(['Space']),
+  jump: Object.freeze(['KeyF']),
   vacuum: Object.freeze(['Enter']),
   stabilize: Object.freeze(['ShiftLeft', 'ShiftRight']),
   restart: Object.freeze(['KeyR']),
@@ -70,6 +72,7 @@ export function defaultSettings(): Settings {
     cameraShake: true,
     flightAssist: true,
     showTrajectory: true,
+    tiltSteering: true,
     bindings: defaultBindings(),
   };
 }
@@ -88,6 +91,7 @@ export interface SettingsActions {
   setCameraShake(on: boolean): void;
   setFlightAssist(on: boolean): void;
   setShowTrajectory(on: boolean): void;
+  setTiltSteering(on: boolean): void;
   /**
    * Bind `code` to `action` at slot `index` (0 = primary, 1 = secondary).
    * A key can only drive one action: if `code` is bound elsewhere it is removed there
@@ -151,6 +155,7 @@ function sanitizeSettings(raw: unknown, current: Settings): Settings {
     cameraShake: asBool(raw.cameraShake, current.cameraShake),
     flightAssist: asBool(raw.flightAssist, current.flightAssist),
     showTrajectory: asBool(raw.showTrajectory, current.showTrajectory),
+    tiltSteering: asBool(raw.tiltSteering, current.tiltSteering),
     bindings: 'bindings' in raw ? sanitizeBindings(raw.bindings) : current.bindings,
   };
 }
@@ -165,6 +170,7 @@ function pickSettings(s: Settings): Settings {
     cameraShake: s.cameraShake,
     flightAssist: s.flightAssist,
     showTrajectory: s.showTrajectory,
+    tiltSteering: s.tiltSteering,
     bindings: s.bindings,
   };
 }
@@ -186,6 +192,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setCameraShake: (cameraShake) => set({ cameraShake }),
       setFlightAssist: (flightAssist) => set({ flightAssist }),
       setShowTrajectory: (showTrajectory) => set({ showTrajectory }),
+      setTiltSteering: (tiltSteering) => set({ tiltSteering }),
 
       setBinding: (action, index, code) => {
         const next = cloneBindings(get().bindings);

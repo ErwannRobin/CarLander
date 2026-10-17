@@ -228,7 +228,9 @@ export class Vehicle {
   private regenTimer = 0;
   private thrusting = false;
   private fuelEmptyLatched = false;
-  private readonly input: InputState = { throttle: 0, steer: 0, roll: 0, boost: false, vacuum: false, stabilize: false };
+  private jumping = false;
+  private jumpEmptyLatched = false;
+  private readonly input: InputState = { throttle: 0, steer: 0, roll: 0, boost: false, jump: false, vacuum: false, stabilize: false };
   private readonly writtenVelocity = new Vector3();
   private readonly lastGood: BodyState;
   private readonly tv = { x: 0, y: 0, z: 0 };
@@ -378,6 +380,7 @@ export class Vehicle {
       input.steer = 0;
       input.roll = 0;
       input.boost = false;
+      input.jump = false;
       input.stabilize = false;
       input.vacuum = false;
     }
@@ -415,7 +418,7 @@ export class Vehicle {
     this.applyAero(vf, grounded, dt);
 
     // --- thrusters & fuel -------------------------------------------------------
-    this.applyThrust(input.boost, airborne, events, dt);
+    this.applyThrust(input.boost, input.jump, airborne, events, dt);
 
     // --- rotation control (none after a crash: the wreck tumbles physically) ----------
     if (this.crashed) {
@@ -728,10 +731,11 @@ export class Vehicle {
   /* Thrust & fuel                                                     */
   /* ---------------------------------------------------------------- */
 
-  private applyThrust(boostHeld: boolean, airborne: boolean, events: GameEvent[], dt: number): void {
+  private applyThrust(boostHeld: boolean, jumpHeld: boolean, airborne: boolean, events: GameEvent[], dt: number): void {
     const b = this.body;
     const cap = Math.max(0.1, this.fuelDef.capacity);
     const wasThrusting = this.thrusting;
+    const wasJumping = this.jumping;
     // a new burn needs a little fuel, and an emptied tank needs the button released first
     const canStart = wasThrusting || this.fuel > 0.02;
     let thrusting = boostHeld && canStart && !this.fuelEmptyLatched && this.fuel > 0;
@@ -752,8 +756,30 @@ export class Vehicle {
     else if (!thrusting && wasThrusting) events.push({ type: 'boostEnd' });
     this.thrusting = thrusting;
 
+    // vertical booster: same tank and the same start / empty rules as the main thrusters, but the
+    // push is along the chassis up axis (underbody jets): a hop on the ground, a cushion when landing,
+    // and a push away from the surface when the car is stuck to the crescent upside down
+    const jump = TUNING.jump;
+    let jumping = jumpHeld && (wasJumping || this.fuel > 0.02) && !this.jumpEmptyLatched && this.fuel > 0;
+    if (jumping) {
+      const vUp = b.linvel.dot(b.up);
+      const fade = clamp((jump.maxClimb - vUp) / jump.speedFade, 0, 1);
+      b.linvel.addScaledVector(b.up, jump.accel * fade * dt);
+      this.fuel -= (dt / cap) * jump.fuelRate;
+      if (this.fuel <= 0) {
+        this.fuel = 0;
+        jumping = false;
+        if (!this.jumpEmptyLatched) events.push({ type: 'fuelEmpty' });
+        this.jumpEmptyLatched = true;
+      }
+    }
+    if (!jumpHeld) this.jumpEmptyLatched = false;
+    if (jumping && !wasJumping) events.push({ type: 'jumpStart' });
+    else if (!jumping && wasJumping) events.push({ type: 'jumpEnd' });
+    this.jumping = jumping;
+
     // regen while grounded, after a delay since the last landing / burn
-    if (airborne || thrusting) this.regenTimer = 0;
+    if (airborne || thrusting || jumping) this.regenTimer = 0;
     else {
       this.regenTimer += dt;
       if (this.regenTimer >= this.fuelDef.regenDelay) this.fuel = Math.min(1, this.fuel + (this.fuelDef.regenPerSec * dt) / cap);
@@ -762,6 +788,10 @@ export class Vehicle {
     const rate = target > this.state.boostLevel ? TUNING.boost.levelRiseRate : TUNING.boost.levelFallRate;
     this.state.boostLevel = approach(this.state.boostLevel, target, rate * dt);
     this.state.boosting = thrusting;
+    const jumpTarget = jumping ? 1 : 0;
+    const jumpRate = jumpTarget > this.state.jumpLevel ? TUNING.boost.levelRiseRate : TUNING.boost.levelFallRate;
+    this.state.jumpLevel = approach(this.state.jumpLevel, jumpTarget, jumpRate * dt);
+    this.state.jumping = jumping;
     this.state.fuel = this.fuel;
   }
 

@@ -11,7 +11,6 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import type { CrashReason } from '@/game/types';
 import { selectSimPaused, useAppStore } from '@/state/appStore';
 import { useHudStore } from '@/state/hudStore';
-import { Icon } from './components/Icon';
 import { ActionKeys } from './components/Keys';
 import { CRASH_FALLBACK_TEXT, CRASH_FALLBACK_TIP, CRASH_REASON_TEXT, CRASH_REASON_TIP } from './format';
 import { useGameEvent, useInputMode, useRunReset } from './hooks';
@@ -75,20 +74,14 @@ export function CrashBanner({ autoRestartMs = DEFAULT_AUTO_RESTART_MS }: CrashBa
       <div key={crash?.id ?? 0} className="rf-crash" role="alert" style={{ '--restart': `${restartMs}ms` } as CSSProperties}>
         <div className="rf-crash__word">Crash</div>
         <div className="rf-crash__reason">{reason ? CRASH_REASON_TEXT[reason] : CRASH_FALLBACK_TEXT}</div>
-        <div className="rf-crash__tip">{reason ? CRASH_REASON_TIP[reason] : CRASH_FALLBACK_TIP}</div>
+        {mode !== 'touch' && <div className="rf-crash__tip">{reason ? CRASH_REASON_TIP[reason] : CRASH_FALLBACK_TIP}</div>}
         <div className="rf-crash__foot">
-          <span className="rf-crash__retry">
-            {mode === 'touch' ? (
-              <>
-                Tap <Icon name="restart" /> to retry now
-              </>
-            ) : (
-              <>
-                <ActionKeys action="restart" />
-                Retry now
-              </>
-            )}
-          </span>
+          {mode !== 'touch' && (
+            <span className="rf-crash__retry">
+              <ActionKeys action="restart" />
+              Retry now
+            </span>
+          )}
           <span className="rf-crash__auto">
             <span className="rf-crash__bar" aria-hidden="true">
               <span />

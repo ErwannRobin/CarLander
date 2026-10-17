@@ -54,6 +54,8 @@ export function createVehicleState(): VehicleState {
     throttle: 0,
     boosting: false,
     boostLevel: 0,
+    jumping: false,
+    jumpLevel: 0,
     fuel: 1,
     rcs: { pitch: 0, yaw: 0, roll: 0 },
     stabilizing: false,

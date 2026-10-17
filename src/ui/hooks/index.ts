@@ -4,9 +4,11 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore, type RefObject } from 'react';
 import { runtime } from '@/game/runtime';
 import type { GameEvent, GameEventType } from '@/game/types';
+import { getGyroStatus, subscribeGyro, type GyroStatus } from '@/input/gyro';
 import { getInputMode, subscribeInputMode, type InputMode } from '@/input/inputMode';
 import { getKeyLabelsVersion, subscribeKeyLabels } from '@/input/keyNames';
 import { useAppStore } from '@/state/appStore';
+import { useSettingsStore } from '@/state/settingsStore';
 
 /* ------------------------------------------------------------------ */
 /* Media queries                                                       */
@@ -47,6 +49,17 @@ export const prefersReducedMotion = (): boolean => matches('(prefers-reduced-mot
 
 export function useInputMode(): InputMode {
   return useSyncExternalStore(subscribeInputMode, getInputMode, () => 'keyboard' as InputMode);
+}
+
+export function useGyroStatus(): GyroStatus {
+  return useSyncExternalStore(subscribeGyro, getGyroStatus, () => 'idle' as GyroStatus);
+}
+
+/** True while the phone steers the car: sensor readings are arriving and the setting is on. */
+export function useTiltSteering(): boolean {
+  const status = useGyroStatus();
+  const on = useSettingsStore((s) => s.tiltSteering);
+  return on && status === 'active';
 }
 
 /** Re-render when the keyboard layout map loads (key labels may change). */

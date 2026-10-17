@@ -19,7 +19,11 @@ export type IconName =
   | 'vacuum'
   | 'rollLeft'
   | 'rollRight'
-  | 'stick';
+  | 'stick'
+  | 'jump'
+  | 'gas'
+  | 'brake'
+  | 'tilt';
 
 const PATHS: Record<IconName, ReactNode> = {
   pause: (
@@ -100,6 +104,36 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <circle cx="12" cy="12" r="8" opacity="0.55" />
       <circle cx="12" cy="12" r="3.4" fill="currentColor" stroke="none" />
+    </>
+  ),
+  // vertical booster: arrow lifting off a deck with jets underneath
+  jump: (
+    <>
+      <path d="M12 3.6v9.4M7.6 7.9 12 3.6l4.4 4.3" />
+      <path d="M5.5 16.4h13" />
+      <path d="M8.8 19v1.8M12 19v2.4M15.2 19v1.8" opacity="0.6" />
+    </>
+  ),
+  // gas pedal: tall ribbed plate
+  gas: (
+    <>
+      <rect x="8" y="3.8" width="8" height="16.4" rx="2.2" />
+      <path d="M10.4 8.4h3.2M10.4 11.6h3.2M10.4 14.8h3.2" opacity="0.7" />
+    </>
+  ),
+  // brake pedal: wide plate
+  brake: (
+    <>
+      <rect x="4.6" y="7" width="14.8" height="10" rx="2.4" />
+      <path d="M8.8 10.4h6.4M8.8 13.6h6.4" opacity="0.7" />
+    </>
+  ),
+  // steering wheel
+  tilt: (
+    <>
+      <circle cx="12" cy="12" r="8.4" />
+      <circle cx="12" cy="12" r="2.2" />
+      <path d="M3.8 11.2h6M14.2 11.2h6M12 14.2v6.2" />
     </>
   ),
 };

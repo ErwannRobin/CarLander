@@ -26,6 +26,7 @@ export function sanitizeInput(src: Readonly<InputState>, out: InputState): Input
   out.steer = axis(src.steer);
   out.roll = axis(src.roll);
   out.boost = src.boost === true;
+  out.jump = src.jump === true;
   out.vacuum = src.vacuum === true;
   out.stabilize = src.stabilize === true;
   return out;

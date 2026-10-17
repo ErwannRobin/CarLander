@@ -95,6 +95,8 @@ export interface HudState {
   /** speed / maxSpeedBoost, 0..1 (gauge fill). */
   speedFrac: number;
   boosting: boolean;
+  /** Vertical booster (JUMP) firing. */
+  jumping: boolean;
   /** 0..1 smoothed thrust level. */
   boostLevel: number;
   /** 0..1 remaining thrust fuel (2 decimals). */
@@ -147,6 +149,7 @@ function initialHud(): HudState {
     speedKmh: 0,
     speedFrac: 0,
     boosting: false,
+    jumping: false,
     boostLevel: 0,
     fuel: 1,
     fuelPct: 100,
@@ -334,6 +337,7 @@ export function publishHud(snapshot: SimSnapshot): void {
     speedKmh: Math.round(speed * KMH),
     speedFrac: r2(Math.min(1, speed / TUNING.maxSpeedBoost)),
     boosting: v.boosting,
+    jumping: v.jumping,
     boostLevel: r2(Math.min(1, Math.max(0, fin(v.boostLevel)))),
     fuel,
     fuelPct: Math.round(fuel * 100),

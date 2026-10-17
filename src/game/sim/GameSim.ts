@@ -88,7 +88,7 @@ export class GameSim {
   private readonly objectives: ObjectiveRunner;
   private readonly predictor = new TrajectoryPredictor();
   private readonly crash = new CrashDetector();
-  private readonly input: InputState = { throttle: 0, steer: 0, roll: 0, boost: false, vacuum: false, stabilize: false };
+  private readonly input: InputState = { throttle: 0, steer: 0, roll: 0, boost: false, jump: false, vacuum: false, stabilize: false };
   private readonly heightHit = createRayHit();
   private readonly inZoneFn = (id: string): boolean => {
     const i = this.zoneIndex.get(id);
