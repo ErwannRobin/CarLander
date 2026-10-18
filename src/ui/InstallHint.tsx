@@ -36,7 +36,8 @@ function wasDismissed(): boolean {
   }
 }
 
-const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const isIPhone = () => /iphone|ipod/i.test(navigator.userAgent);
+const isIOS = () => isIPhone() || /ipad/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 export function InstallHint() {
   const [visible, setVisible] = useState(() => isTouchDevice() && !isInstalled() && !wasDismissed());
@@ -74,14 +75,14 @@ export function InstallHint() {
   };
 
   return (
-    <aside className="rf-install" role="note" aria-label="Install the game">
+    <aside className={`rf-install${!prompt && isIPhone() ? ' rf-install--arrow' : ''}`} role="note" aria-label="Install the game">
       <div className="rf-install__body">
         <strong className="rf-install__title">Play it like an app</strong>
         {prompt ? (
           <p>Install the game for full screen and a home screen icon.</p>
         ) : isIOS() ? (
           <p>
-            Tap <b>Share</b> in Safari, then <b>Add to Home Screen</b>.
+            Tap the <b>Share</b> icon {isIPhone() ? 'below' : 'in Safari'}, then <b>Add to Home Screen</b>.
           </p>
         ) : (
           <p>
