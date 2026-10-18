@@ -8,6 +8,7 @@ import { requestGyro } from '@/input/gyro';
 import { useAppStore } from '@/state/appStore';
 import { LEVEL_IDS, useProgressStore } from '@/state/progressStore';
 import { Icon } from './components/Icon';
+import { InstallHint } from './InstallHint';
 import { KeyCap } from './components/Keys';
 import { Medal } from './components/Medal';
 import { useArrowNav, useAutoFocus, useInputMode, useKeyDown, useRepeatActivationGuard } from './hooks';
@@ -81,6 +82,7 @@ export function TitleScreen() {
           </button>
         </div>
         <p className="rf-title__hint">Drag to turn the car · pinch or scroll to zoom</p>
+        <InstallHint />
       </main>
 
       <footer className="rf-title__foot">

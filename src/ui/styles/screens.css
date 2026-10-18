@@ -625,3 +625,77 @@
     align-items: stretch;
   }
 }
+
+/* Install-as-app tip (touch devices only, see InstallHint) */
+.rf-install {
+  display: flex;
+  align-items: flex-start;
+  gap: calc(var(--rf-u) * 10);
+  position: fixed;
+  z-index: 30;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + 14px);
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: max-content;
+  max-width: min(34ch, calc(100vw - 24px));
+  padding: calc(var(--rf-u) * 10) calc(var(--rf-u) * 12);
+  border: 1px solid var(--rf-line-2);
+  border-radius: calc(var(--rf-u) * 10);
+  background: var(--rf-glass-2);
+  -webkit-backdrop-filter: var(--rf-glass-filter);
+  backdrop-filter: var(--rf-glass-filter);
+  font: 400 var(--rf-fs-xs) / 1.45 var(--rf-sans);
+  color: var(--rf-ink-2);
+  animation: rf-rise-in 700ms 1000ms var(--rf-ease) both;
+}
+.rf-install__body p {
+  margin: calc(var(--rf-u) * 2) 0 0;
+}
+.rf-install__body b {
+  color: var(--rf-ink);
+  font-weight: 600;
+}
+.rf-install__title {
+  color: var(--rf-cyan);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.rf-install__cta {
+  margin-top: calc(var(--rf-u) * 8);
+}
+.rf-install__close {
+  flex: none;
+  width: 28px;
+  height: 28px;
+  margin: -4px -6px 0 0;
+  padding: 4px;
+  border: 0;
+  background: none;
+  color: var(--rf-ink-3);
+}
+.rf-install__close svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* iPhone Safari: the Share icon sits in the bottom toolbar, so point down at it */
+.rf-install--arrow::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 100%;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border: solid var(--rf-line-2);
+  border-width: 0 1px 1px 0;
+  background: var(--rf-glass-2);
+  transform: rotate(45deg);
+  animation: rf-install-bob 1.4s ease-in-out infinite;
+}
+@keyframes rf-install-bob {
+  50% {
+    translate: 0 5px;
+  }
+}
