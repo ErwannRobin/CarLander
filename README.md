@@ -46,18 +46,19 @@ Every run starts with a 3-2-1 countdown (`?nocountdown=1` skips it for QA).
 
 1. **Learn to Fly** (morning runway). Full throttle down the runway, let go at the lip, fire the
    thrusters, match the slope and stabilize into the target rings.
-2. **Clear the Gap** (golden-hour canyon). Flip off two trick kickers, boost up the big ramp,
-   clear a 190 m chasm through the ring gate and land on all four wheels.
+2. **Kickflip** (jump jets over a line of parked cars, then land a kickflip on the far side).
 3. **The Inverted Ramp** (night arena, after Tesla's crescent-ramp demo). Floor it down a straight
    road (no jump), hold the vacuum up an 86 m crescent, drive the straight beam upside down, release,
    flip upright and land on the distant hill.
+4. **Clear the Gap** (golden-hour canyon). Flip off two trick kickers, boost up the big ramp,
+   clear a 190 m chasm through the ring gate and land on all four wheels.
 
 Landings are graded PERFECT, CLEAN, HARD or CRASH. The score adds distance, air time, tricks,
 landing quality and a combo multiplier. Medals, best scores and level unlocks are saved locally.
 
 ## Dev tools
 
-- `/?level=1|2|3` jumps straight into a level. Add `&autopilot=1` to watch the level's reference
+- `/?level=1|2|3|4` jumps straight into a level. Add `&autopilot=1` to watch the level's reference
   pilot play it. `/?unlockAll=1` unlocks every level.
 - `window.__game` (while playing) exposes the runner, sim snapshot, camera, scene, stores and
   `frameStats()`.

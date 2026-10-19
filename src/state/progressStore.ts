@@ -12,7 +12,7 @@ import { persist } from 'zustand/middleware';
 import type { LandingQuality, LandingResult, LevelId, LevelProgress, LevelResult } from '@/game/types';
 import { asBool, asFiniteNumber, asOneOf, createSafeStorage, isRecord } from './storage';
 
-export const LEVEL_IDS: readonly LevelId[] = [1, 2, 3];
+export const LEVEL_IDS: readonly LevelId[] = [1, 2, 3, 4];
 
 export type Medal = LevelResult['medal'];
 export const MEDAL_RANK: Record<Medal, number> = { none: 0, bronze: 1, silver: 2, gold: 3 };
@@ -55,7 +55,7 @@ function emptyProgress(unlocked: boolean): LevelProgress {
 }
 
 function initialLevels(): Record<LevelId, LevelProgress> {
-  return { 1: emptyProgress(true), 2: emptyProgress(false), 3: emptyProgress(false) };
+  return { 1: emptyProgress(true), 2: emptyProgress(false), 3: emptyProgress(false), 4: emptyProgress(false) };
 }
 
 function toBestLanding(l: LandingResult): BestLanding {
@@ -72,7 +72,7 @@ export function isBetterLanding(a: BestLanding, b: BestLanding | null): boolean 
 }
 
 function nextLevelId(id: LevelId): LevelId | null {
-  return id === 1 ? 2 : id === 2 ? 3 : null;
+  return id < 4 ? ((id + 1) as LevelId) : null;
 }
 
 const recorded = new WeakMap<LevelResult, RecordOutcome>();

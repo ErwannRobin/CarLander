@@ -1,5 +1,5 @@
 /**
- * LEVEL 2 — CLEAR THE GAP (theme 'canyon').
+ * LEVEL 4 — CLEAR THE GAP (formerly level 2; its files keep the level2/ and L2 names) (theme 'canyon').
  *
  * Teaches: flips/rotations on two practice kickers (optional, scored), realigning with SHIFT, a
  * short thrust (boost up the big ramp, or in the air) to clear a 190 m chasm through a suspended

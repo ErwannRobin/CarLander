@@ -1,5 +1,5 @@
 /**
- * LEVEL 2 — CLEAR THE GAP: headless proofs.
+ * LEVEL 4 — CLEAR THE GAP: headless proofs.
  *
  *  (a) the reference pilot completes the level (deterministic, also through asFunction / reset)
  *  (b) keyboard-like variants complete (axes quantized to −1/0/+1 in 0.1 s PWM slots, ±0.15 s jitter
@@ -11,7 +11,7 @@
  */
 import { describe, expect, it } from 'vitest';
 import { Quaternion, Vector3 } from 'three';
-import { LEVEL_2, L2_RING_BONUS, level2Pilot } from '@/game/levels/level2';
+import { LEVEL_2, L2_RING_BONUS, level2Pilot } from '@/game/levels/level4';
 import { L2_COURSE as C } from '@/game/levels/level2/course';
 import { createLevel2Pilot, type L2PilotOptions } from '@/game/levels/level2/pilot';
 import { frameAt } from '@/game/track/TrackPath';
@@ -166,9 +166,9 @@ function jittered(base: L2PilotOptions, rnd: () => number): L2PilotOptions {
 /* Tests                                                                */
 /* ------------------------------------------------------------------ */
 
-describe('Level 2 — CLEAR THE GAP', () => {
+describe('Level 4 — CLEAR THE GAP', () => {
   it('geometry: catch shelf, kill plane and landing hill sit well above the cloud sea', () => {
-    expect(LEVEL_2.id).toBe(2);
+    expect(LEVEL_2.id).toBe(4);
     expect(LEVEL_2.theme).toBe('canyon');
     expect(LEVEL_2.killY).toBeGreaterThan(CLOUD_SEA_TOP + 40);
     expect(C.yFinish).toBeGreaterThan(LEVEL_2.killY + 40);

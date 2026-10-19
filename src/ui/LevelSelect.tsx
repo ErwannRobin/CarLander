@@ -1,5 +1,5 @@
 /**
- * Level select: three level cards with their elevation profile, what each teaches, unlock
+ * Level select: one card per level in a single row, each with its elevation profile, what it teaches, unlock
  * state and personal records. Keyboard: arrows move between cards, Enter plays, Esc = back.
  */
 import { useLayoutEffect, useMemo, useRef, type Ref } from 'react';

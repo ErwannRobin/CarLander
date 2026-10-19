@@ -75,7 +75,7 @@ export function LevelComplete() {
 
   if (!result) return null;
   const card = LEVEL_CATALOG[result.levelId];
-  const hasNext = result.levelId < 3;
+  const hasNext = result.levelId < 4;
   const landing = result.finalLanding;
   const revealAt = COUNT_DELAY + COUNT_MS - 200;
 

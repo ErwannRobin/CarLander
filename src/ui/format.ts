@@ -88,3 +88,11 @@ export const MEDAL_LABEL: Record<LevelResult['medal'], string> = {
   silver: 'Silver',
   gold: 'Gold',
 };
+
+const NUMBER_WORDS = ['Zero', 'One', 'Two', 'Three', 'Four', 'Five', 'Six', 'Seven', 'Eight', 'Nine', 'Ten'];
+
+/** Spelled-out count for short copy ("Four levels."); falls back to the digit past ten. */
+export function numberWord(n: number): string {
+  return NUMBER_WORDS[n] ?? String(n);
+}
+
