@@ -315,7 +315,7 @@
   position: relative;
   align-self: center;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, calc(var(--rf-u) * 336)));
+  grid-template-columns: repeat(4, minmax(0, calc(var(--rf-u) * 336)));
   justify-content: center;
   gap: calc(var(--rf-u) * 20);
   margin: 0;
@@ -328,6 +328,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* Cards are sized by the row, never by their text: lets the records block reflow on narrow cards. */
+  container-type: inline-size;
   /* Solid panels take the pointer (layers are click-through by default): hover state on
      desktop, and touch swipes on the phone carousel start anywhere on a card. */
   pointer-events: auto;
@@ -349,6 +351,9 @@
 }
 .rf-card:nth-child(3) {
   animation-delay: 140ms;
+}
+.rf-card:nth-child(4) {
+  animation-delay: 210ms;
 }
 .rf-card:not([data-locked]):hover,
 .rf-card:focus-within {
@@ -450,7 +455,9 @@
   display: grid;
   grid-template-columns: 1fr 0.9fr 1.1fr;
   gap: calc(var(--rf-u) * 10);
-  margin: calc(var(--rf-u) * 18) 0 0;
+  /* Auto: the records block sits at the bottom of every card, so the rows line up across
+     the row even when one card's title or description wraps to more lines. */
+  margin: auto 0 0;
   padding-top: calc(var(--rf-u) * 14);
   border-top: 1px solid var(--rf-line);
 }
@@ -486,11 +493,34 @@
   color: var(--rf-ink-3);
 }
 
+/* Narrow cards (four across): the three records read as a list — label left, value right —
+   instead of three columns the labels no longer fit in. */
+@container (max-width: 21rem) {
+  .rf-card__stats {
+    grid-template-columns: minmax(0, 1fr);
+    gap: calc(var(--rf-u) * 8);
+  }
+  .rf-card__stat {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: center;
+    gap: calc(var(--rf-u) * 8);
+  }
+  .rf-card__stat dt {
+    margin-bottom: 0;
+  }
+  .rf-card__stat dd {
+    min-height: max(16px, calc(var(--rf-u) * 14));
+    justify-content: flex-end;
+  }
+}
+
+
 .rf-card__lock {
   display: flex;
   align-items: center;
   gap: calc(var(--rf-u) * 10);
-  margin: calc(var(--rf-u) * 18) 0 0;
+  margin: auto 0 0;
   padding-top: calc(var(--rf-u) * 14);
   border-top: 1px solid var(--rf-line);
   font: 500 var(--rf-fs-sm) / 1.35 var(--rf-sans);
@@ -507,11 +537,17 @@
   align-items: center;
   justify-content: space-between;
   gap: calc(var(--rf-u) * 12);
-  margin-top: auto;
+  /* 0, not auto: the records block above already takes the slack, so the Play row stays right
+     under it and lines up across every card. */
+  margin-top: 0;
   padding-top: calc(var(--rf-u) * 18);
 }
-.rf-card__play {
+/* Two classes deep so it beats .rf-btn--primary's own --btn-h regardless of import order. */
+.rf-card__foot .rf-card__play {
   min-width: max(120px, calc(var(--rf-u) * 140));
+  /* The recommended card's button is the primary style, which is normally taller. Pin every
+     card's button to that height so the records block above lines up across the row. */
+  --btn-h: max(46px, calc(var(--rf-u) * 54));
 }
 .rf-card__attempts {
   font: 500 var(--rf-fs-xs) / 1 var(--rf-sans);
@@ -524,7 +560,7 @@
 @media (max-width: 900px), (max-height: 520px) {
   .rf-levels__cards {
     align-self: stretch;
-    grid-template-columns: repeat(3, minmax(min(300px, 82vw), 1fr));
+    grid-template-columns: repeat(4, minmax(min(300px, 82vw), 1fr));
     justify-content: start;
     overflow-x: auto;
     overflow-y: hidden;
@@ -550,6 +586,11 @@
   }
   .rf-card__foot {
     margin-top: 0;
+  }
+  /* Phones: the "You learn" line would otherwise sit on the records block's divider. */
+  .rf-card__stats,
+  .rf-card__lock {
+    margin-top: calc(var(--rf-u) * 12);
   }
 }
 /* Portrait phones: the card row floats in the middle of the screen instead of hugging the header. */
@@ -611,6 +652,8 @@
   }
   .rf-card__skill {
     margin-top: calc(var(--rf-u) * 8);
+    /* Keep the "You learn" line clear of the records block's divider on narrow cards. */
+    margin-bottom: calc(var(--rf-u) * 10);
   }
   .rf-card__stats,
   .rf-card__lock {
@@ -618,7 +661,7 @@
     padding-top: calc(var(--rf-u) * 10);
   }
   .rf-card__foot {
-    margin-top: auto;
+    margin-top: 0;
     padding-top: calc(var(--rf-u) * 12);
   }
   .rf-levels__cards {

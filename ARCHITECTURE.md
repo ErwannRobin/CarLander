@@ -2,7 +2,7 @@
 
 A premium web arcade game: a rocket-assisted electric sports car that launches off monumental
 ramps, performs controlled aerial stunts, drives upside down with a vacuum adhesion system, and
-must **land perfectly**. Three handcrafted tutorial levels: LEARN TO FLY → CLEAR THE GAP → THE INVERTED RAMP.
+must **land perfectly**. Four handcrafted levels: LEARN TO FLY → KICKFLIP → THE INVERTED RAMP → CLEAR THE GAP.
 
 Pillars, in priority order:
 1. Spectacular, coherent visual presentation (premium indie / high-end commercial look).
@@ -57,7 +57,7 @@ Modules:
 | Audio | `src/audio/**`, `dev/audio.*` |
 | UI, input, stores | `src/ui/**`, `src/state/**`, `src/input/**`, `dev/ui.*` |
 | Integration (lead) | `src/App.tsx`, `src/main.tsx`, `src/game/GameRunner.ts`, `src/render/camera/**`, `src/render/scenes/**`, `src/render/GameCanvas.tsx` |
-| Levels | `src/game/levels/level{1,2,3}.ts` (+ `level{N}/` helpers), `src/render/levels/**`, `tests/levels/**` |
+| Levels | `src/game/levels/{level1,kickflip,level3,level4}.ts` (+ `level{N}/` helpers), `src/render/levels/**`, `tests/levels/**` |
 
 Never edit files you don't own. If you need something from another module, code against the
 contract in `types.ts` / this document and note the assumption in your final report.
@@ -332,3 +332,5 @@ start, 0.65 s on retries; `?nocountdown=1` disables it) and reports each step th
 Gamepad (bonus): left stick steer/pitch, RT accelerate, LT brake, A thrust, B vertical booster, RB vacuum, LB stabilize, X-Y roll.
 
 Touch: tilt the phone to steer and tip it for gas / brake (stick fallback), THRUST, JUMP, VACUUM, STABILIZE and ROLL buttons, drag to look around.
+
+Note: Clear the Gap is level id 4 but its files keep the historical `level2/` folder and `L2` names.

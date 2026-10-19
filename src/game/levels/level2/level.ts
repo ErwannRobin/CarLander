@@ -259,7 +259,7 @@ export function buildLevel2(C: L2Course = L2_COURSE): LevelDef {
   /* ------------------------------------------------------------------ */
 
   return {
-    id: 2,
+    id: 4,
     name: 'CLEAR THE GAP',
     subtitle: 'Golden-hour canyon',
     description: 'Two trick kickers, a boost up the big ramp, then a 190-metre chasm. Thread the ring, realign and land on all four wheels.',

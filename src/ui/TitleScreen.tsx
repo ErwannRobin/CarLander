@@ -7,6 +7,7 @@ import { useRef } from 'react';
 import { requestGyro } from '@/input/gyro';
 import { useAppStore } from '@/state/appStore';
 import { LEVEL_IDS, useProgressStore } from '@/state/progressStore';
+import { numberWord } from './format';
 import { Icon } from './components/Icon';
 import { InstallHint } from './InstallHint';
 import { KeyCap } from './components/Keys';
@@ -94,7 +95,7 @@ export function TitleScreen() {
           </span>
           <span className="rf-title__progress-text">
             {completed === 0
-              ? 'Three levels. Start with Learn to Fly.'
+              ? `${numberWord(LEVEL_IDS.length)} levels. Start with Learn to Fly.`
               : completed === LEVEL_IDS.length
                 ? 'All levels complete'
                 : `${completed} of ${LEVEL_IDS.length} levels complete`}

@@ -80,17 +80,19 @@ function lp(p: Partial<LevelProgress>): LevelProgress {
 }
 
 function mockProgress(kind: string): Record<LevelId, LevelProgress> {
-  if (kind === 'fresh') return { 1: lp({ unlocked: true }), 2: lp({}), 3: lp({}) };
+  if (kind === 'fresh') return { 1: lp({ unlocked: true }), 2: lp({}), 3: lp({}), 4: lp({}) };
   if (kind === 'done')
     return {
       1: lp({ unlocked: true, completed: true, bestScore: 18450, bestMedal: 'gold', attempts: 4, bestTime: 41.2, bestLanding: { quality: 'perfect', angleDeg: 2.4, impactSpeed: 5.1, points: 3200 } }),
       2: lp({ unlocked: true, completed: true, bestScore: 42760, bestMedal: 'silver', attempts: 11, bestTime: 72.5, bestLanding: { quality: 'clean', angleDeg: 11.8, impactSpeed: 9.4, points: 5200 } }),
       3: lp({ unlocked: true, completed: true, bestScore: 61200, bestMedal: 'bronze', attempts: 23, bestTime: 96.1, bestLanding: { quality: 'hard', angleDeg: 31.5, impactSpeed: 17.2, points: 1800 } }),
+      4: lp({ unlocked: true, completed: true, bestScore: 38200, bestMedal: 'silver', attempts: 9, bestTime: 64.8, bestLanding: { quality: 'clean', angleDeg: 9.1, impactSpeed: 8.2, points: 4800 } }),
     };
   return {
     1: lp({ unlocked: true, completed: true, bestScore: 18450, bestMedal: 'gold', attempts: 4, bestTime: 41.2, bestLanding: { quality: 'perfect', angleDeg: 2.4, impactSpeed: 5.1, points: 3200 } }),
     2: lp({ unlocked: true, attempts: 2 }),
     3: lp({}),
+    4: lp({}),
   };
 }
 

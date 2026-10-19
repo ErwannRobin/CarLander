@@ -33,7 +33,7 @@ function useBoot() {
       app.boot();
       const params = new URLSearchParams(location.search);
       const lvl = Number(params.get('level'));
-      if (lvl === 1 || lvl === 2 || lvl === 3) app.startLevel(lvl as LevelId);
+      if (lvl === 1 || lvl === 2 || lvl === 3 || lvl === 4) app.startLevel(lvl as LevelId);
     })();
     return () => {
       cancelled = true;

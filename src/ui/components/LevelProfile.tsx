@@ -1,8 +1,8 @@
 /**
- * Elevation-profile glyphs of the three levels (like a stage profile): hairline track,
+ * Elevation-profile glyphs of each level (like a stage profile): hairline track,
  * support pylons down to the cloud deck, the intended flight path, and each level's
- * signature detail (thrust burn at the L1 lip, the L2 ring gate, the L3 crescent with its
- * red LED beam and lattice tower).
+ * signature detail (thrust burn at the L1 lip, the kickflip row of vehicles, the L3
+ * crescent with its red LED beam and lattice tower, the L4 canyon gap).
  */
 import type { LevelId } from '@/game/types';
 
@@ -50,6 +50,25 @@ function Level2() {
   );
 }
 
+function Kickflip() {
+  return (
+    <>
+      <Pylons xs={[[30, 64], [96, 64], [150, 70], [238, 58], [292, 74]]} />
+      <path className="rf-profile__track" d="M8 64 H130 C140 64 148 60 156 50" />
+      {/* parking lot with five cars broadside */}
+      <path className="rf-profile__track" d="M160 70 H214" />
+      <g className="rf-profile__target">
+        {[166, 175, 184, 193, 202].map((x) => (
+          <rect key={x} x={x} y="65" width="7" height="5" rx="1.5" />
+        ))}
+      </g>
+      <path className="rf-profile__track" d="M216 52 H226 C236 52 246 60 262 68 C272 72 282 74 312 74" />
+      <path className="rf-profile__path" d="M156 50 Q190 22 240 57" />
+      <circle className="rf-profile__gate" cx="190" cy="36" r="5" />
+    </>
+  );
+}
+
 function Level3() {
   return (
     <>
@@ -84,7 +103,7 @@ export function LevelProfile({ id, locked = false, className }: { id: LevelId; l
       aria-hidden="true"
     >
       <line className="rf-profile__clouds" x1="0" y1={CLOUD_Y} x2="320" y2={CLOUD_Y} />
-      {id === 1 ? <Level1 /> : id === 2 ? <Level2 /> : <Level3 />}
+      {id === 1 ? <Level1 /> : id === 2 ? <Kickflip /> : id === 3 ? <Level3 /> : <Level2 />}
     </svg>
   );
 }

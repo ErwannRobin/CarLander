@@ -16,7 +16,7 @@ import type { Quaternion, Vector3 } from 'three';
 
 export type V3 = [number, number, number];
 
-export type LevelId = 1 | 2 | 3;
+export type LevelId = 1 | 2 | 3 | 4;
 export type ThemeId = 'title' | 'morning' | 'canyon' | 'night';
 export type QualityLevel = 'low' | 'medium' | 'high';
 

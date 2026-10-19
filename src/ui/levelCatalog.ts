@@ -30,12 +30,12 @@ export const LEVEL_CATALOG: Record<LevelId, LevelCard> = {
   },
   2: {
     id: 2,
-    name: 'Clear the Gap',
-    subtitle: 'Golden-hour canyon',
+    name: 'Kickflip',
+    subtitle: 'Night show',
     description:
-      'Two trick kickers, a boost up the big ramp, then a 190-metre chasm. Thread the ring, realign and land on all four wheels.',
-    skill: 'Flips, thrust control and slope matching',
-    theme: 'canyon',
+      'Hop the row of five parked vehicles with F, roll the car with Q / E, then stabilize and stick the landing.',
+    skill: 'Barrel rolls and recovery',
+    theme: 'night',
     requirement: 'Finish Learn to Fly to unlock',
   },
   3: {
@@ -46,7 +46,17 @@ export const LEVEL_CATALOG: Record<LevelId, LevelCard> = {
       'Hold the vacuum up an 86-metre crescent, drive the beam upside down, then release, flip upright and stick the landing.',
     skill: 'Vacuum, inverted driving and recovery',
     theme: 'night',
-    requirement: 'Finish Clear the Gap to unlock',
+    requirement: 'Finish Kickflip to unlock',
+  },
+  4: {
+    id: 4,
+    name: 'Clear the Gap',
+    subtitle: 'Golden-hour canyon',
+    description:
+      'Two trick kickers, a boost up the big ramp, then a 190-metre chasm. Thread the ring, realign and land on all four wheels.',
+    skill: 'Flips, thrust control and slope matching',
+    theme: 'canyon',
+    requirement: 'Finish The Inverted Ramp to unlock',
   },
 };
 

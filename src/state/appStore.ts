@@ -131,7 +131,7 @@ export const useAppStore = create<AppState>()((set, get) => ({
 
   nextLevel: () => {
     const { levelId } = get();
-    const next: LevelId | null = levelId === 1 ? 2 : levelId === 2 ? 3 : null;
+    const next: LevelId | null = levelId < 4 ? ((levelId + 1) as LevelId) : null;
     if (next && useProgressStore.getState().levels[next].unlocked) get().startLevel(next);
     else get().goLevelSelect();
   },
