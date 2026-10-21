@@ -18,7 +18,19 @@
 import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 import { calibrateTilt, initGyro, setGyroEnabled } from '@/input/gyro';
 import { setInputMode } from '@/input/inputMode';
-import { cameraLook, clampZoom, resetCameraLook, resetCameraOrbit, resetTouchInput, touchInput } from '@/input/touchInput';
+import {
+  LOOK_PITCH_MAX,
+  LOOK_PITCH_MIN,
+  LOOK_PITCH_PER_PX,
+  LOOK_YAW_PER_PX,
+  cameraLook,
+  clampZoom,
+  resetCameraLook,
+  resetCameraOrbit,
+  resetTouchInput,
+  touchInput,
+  wrapPi,
+} from '@/input/touchInput';
 import { useAppStore } from '@/state/appStore';
 import { useHudStore } from '@/state/hudStore';
 import { useSettingsStore } from '@/state/settingsStore';
@@ -266,17 +278,9 @@ function TiltMeter() {
 /* Camera look                                                         */
 /* ------------------------------------------------------------------ */
 
-/** Radians of orbit per dragged pixel. */
-const LOOK_YAW_PER_PX = 0.0075;
-const LOOK_PITCH_PER_PX = 0.0055;
-/** Highest and lowest the boom may be swung (rad, relative to the framing the camera would use). */
-const LOOK_PITCH_MAX = 1.1;
-const LOOK_PITCH_MIN = -0.25;
 /** A touch that moves less than this (px) and ends within TAP_MS is a tap. */
 const TAP_SLOP = 10;
 const TAP_MS = 260;
-
-const wrapPi = (a: number) => a - Math.PI * 2 * Math.round(a / (Math.PI * 2));
 
 /** The whole screen is a camera handle (under the HUD and the buttons): one finger orbits, two pinch to zoom. */
 function LookPad({ enabled }: { enabled: boolean }) {

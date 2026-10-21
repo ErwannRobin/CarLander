@@ -11,7 +11,18 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { CAMERA_PRIORITY, runtime } from '@/game/runtime';
-import { cameraLook, clampZoom, resetCameraOrbit, wheelZoomFactor } from '@/input/touchInput';
+import {
+  LOOK_PITCH_MAX,
+  LOOK_PITCH_MIN,
+  LOOK_PITCH_PER_PX,
+  LOOK_YAW_PER_PX,
+  cameraLook,
+  clampZoom,
+  resetCameraLook,
+  resetCameraOrbit,
+  wheelZoomFactor,
+  wrapPi,
+} from '@/input/touchInput';
 import { useAppStore } from '@/state/appStore';
 import { cameraServices } from './cameraServices';
 import { damp, noise1, smoothDampVec3, smoothstep } from './smoothing';
@@ -125,9 +136,46 @@ export function CameraRig() {
       cameraLook.zoom = clampZoom(cameraLook.zoom * wheelZoomFactor(e));
     };
     window.addEventListener('wheel', onWheel, { passive: false });
+    // mouse drag (left button) orbits the boom; a click without movement puts it back behind the car
+    let dragId = -1;
+    let moved = 0;
+    const canLook = () => {
+      const app = useAppStore.getState();
+      return app.screen === 'playing' && app.overlay === 'none';
+    };
+    const endDrag = (e: PointerEvent) => {
+      if (e.pointerId !== dragId) return;
+      dragId = -1;
+      if (e.type === 'pointerup' && moved < 4) resetCameraLook();
+      cameraLook.dragging = false;
+      cameraLook.idle = 0;
+    };
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' || e.button !== 0 || dragId !== -1 || !canLook()) return;
+      // only the bare 3D view: buttons, panels and menus keep their clicks
+      if (!(e.target instanceof HTMLCanvasElement)) return;
+      dragId = e.pointerId;
+      moved = 0;
+      cameraLook.dragging = true;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerId !== dragId) return;
+      moved += Math.abs(e.movementX) + Math.abs(e.movementY);
+      cameraLook.yaw = wrapPi(cameraLook.yaw - e.movementX * LOOK_YAW_PER_PX);
+      cameraLook.pitch = Math.min(LOOK_PITCH_MAX, Math.max(LOOK_PITCH_MIN, cameraLook.pitch + e.movementY * LOOK_PITCH_PER_PX));
+    };
+    window.addEventListener('pointerdown', onDown);
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', endDrag);
+    window.addEventListener('pointercancel', endDrag);
     return () => {
       offs.forEach((o) => o());
       window.removeEventListener('wheel', onWheel);
+      window.removeEventListener('pointerdown', onDown);
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', endDrag);
+      window.removeEventListener('pointercancel', endDrag);
+      if (dragId !== -1) cameraLook.dragging = false;
     };
   }, [camera]);
 
