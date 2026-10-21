@@ -23,7 +23,9 @@ export type IconName =
   | 'jump'
   | 'gas'
   | 'brake'
-  | 'tilt';
+  | 'tilt'
+  | 'download'
+  | 'film';
 
 const PATHS: Record<IconName, ReactNode> = {
   pause: (
@@ -134,6 +136,19 @@ const PATHS: Record<IconName, ReactNode> = {
       <circle cx="12" cy="12" r="8.4" />
       <circle cx="12" cy="12" r="2.2" />
       <path d="M3.8 11.2h6M14.2 11.2h6M12 14.2v6.2" />
+    </>
+  ),
+  download: (
+    <>
+      <path d="M12 4.5v10.2M7.6 10.6 12 15l4.4-4.4" />
+      <path d="M5 19.2h14" />
+    </>
+  ),
+  // clapper
+  film: (
+    <>
+      <rect x="3.5" y="9" width="17" height="10.5" rx="1.8" />
+      <path d="M3.9 9 6 4.6l4.5 1L8.4 10M10.8 6l4.5 1L13.2 10.2M15.6 7.1l3.6.8-1.8 3" />
     </>
   ),
 };

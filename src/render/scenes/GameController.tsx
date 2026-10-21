@@ -19,7 +19,9 @@ import { cameraServices } from '@/render/camera/cameraServices';
 import { useAppStore } from '@/state/appStore';
 import { useCountdownStore } from '@/state/countdownStore';
 import { publishHud } from '@/state/hudStore';
+import { ClipRecorder, pickRecordingFormat } from '@/render/replay/ClipRecorder';
 import { useProgressStore } from '@/state/progressStore';
+import { replayControl, useReplayStore } from '@/state/replayStore';
 import { useSettingsStore } from '@/state/settingsStore';
 
 const rayDir = new Vector3();
@@ -78,6 +80,16 @@ export function GameController({ level }: { level: LevelDef }) {
           useAppStore.getState().showComplete(e.result);
         }
       },
+      // the replay plays the run's sounds again, but not its fanfare
+      onReplayEvent: (e) => {
+        if (e.type !== 'levelComplete') audio.handleEvent(e);
+      },
+      onReplay: (status) => {
+        const rs = useReplayStore.getState();
+        // spectator view only once the clip is on screen (while seeking the results orbit stays)
+        runtime.replay.spectator = rs.camera === 'spectator' && status.phase !== 'seeking';
+        rs.set({ phase: status.phase, seek: status.seek, progress: status.progress, scale: status.scale });
+      },
       requestRestart: () => useAppStore.getState().restart(),
       publishHud: () => {
         if (runner.sim) publishHud(runner.sim.snapshot);
@@ -95,7 +107,7 @@ export function GameController({ level }: { level: LevelDef }) {
     runnerRef.current = runner;
 
     cameraServices.raycast = (origin, dir, maxDist) => {
-      const sim = runner.sim;
+      const sim = runner.activeSim;
       if (!sim) return null;
       rayDir.copy(dir).normalize();
       const hit = sim.physics.raycast(origin, rayDir, maxDist);
@@ -162,6 +174,110 @@ export function GameController({ level }: { level: LevelDef }) {
     useProgressStore.getState().recordAttempt(level.id);
   }, [level]);
 
+  // ---- replay: start / stop / options / video export ----
+  const recorderRef = useRef<{ rec: ClipRecorder } | null>(null);
+  const armRecording = useRef<{ mime: string; ext: string } | null>(null);
+  const replayApi = useRef({
+    enter: () => {},
+    leave: () => {},
+  });
+
+  useEffect(() => {
+    const store = useReplayStore;
+    const runner = () => runnerRef.current;
+    store.getState().set({ exportSupported: pickRecordingFormat() !== null });
+
+    const options = () => {
+      const rs = store.getState();
+      return { autoSlowmo: rs.autoSlowmo, speed: rs.speed, paused: rs.paused };
+    };
+    const start = () => {
+      const r = runner();
+      if (!r) return;
+      store.getState().set({ phase: 'seeking', seek: 0, progress: 0 });
+      r.startReplay(options());
+    };
+    const cancelRecording = () => {
+      recorderRef.current?.rec.cancel();
+      recorderRef.current = null;
+    };
+    replayApi.current = {
+      enter: () => {
+        store.getState().reset();
+        store.getState().set({ exportSupported: pickRecordingFormat() !== null });
+        runtime.replay.spectator = false;
+        start();
+      },
+      leave: () => {
+        cancelRecording();
+        runner()?.stopReplay();
+        runtime.replay.spectator = true;
+        store.getState().reset();
+        store.getState().set({ exportSupported: pickRecordingFormat() !== null });
+      },
+    };
+    replayControl.restart = () => {
+      cancelRecording();
+      store.getState().set({ paused: false, exportPhase: 'idle' });
+      start();
+    };
+    replayControl.exportClip = () => {
+      const format = pickRecordingFormat();
+      if (!format) return;
+      cancelRecording();
+      const rs = store.getState();
+      if (rs.exportUrl) URL.revokeObjectURL(rs.exportUrl);
+      store.getState().set({ paused: false, exportPhase: 'recording', exportUrl: null, exportError: null });
+      // record from the top of the clip: wait for the re-simulation, then capture until it ends
+      armRecording.current = format;
+      start();
+    };
+
+    const offStore = store.subscribe((s, prev) => {
+      if (s.paused !== prev.paused || s.speed !== prev.speed || s.autoSlowmo !== prev.autoSlowmo) runner()?.setReplayOptions(options());
+      if (s.camera !== prev.camera && runtime.replay.active) runtime.replay.spectator = s.camera === 'spectator' && s.phase !== 'seeking';
+      const rec = recorderRef.current;
+      if (s.phase !== prev.phase) {
+        if (s.phase === 'playing' && armRecording.current && !rec) {
+          try {
+            const rec = new ClipRecorder(gl.domElement, armRecording.current);
+            recorderRef.current = { rec };
+          } catch (err) {
+            store.getState().set({ exportPhase: 'error', exportError: err instanceof Error ? err.message : 'Recording failed.' });
+          }
+          armRecording.current = null;
+        } else if (s.phase === 'ended' && rec) {
+          recorderRef.current = null;
+          const name = `roadster-flight-level-${useAppStore.getState().levelId}-replay`;
+          window.setTimeout(() => {
+            rec.rec.stop().then(
+              (blob) => {
+                const url = URL.createObjectURL(blob);
+                store.getState().set({ exportPhase: 'done', exportUrl: url, exportName: `${name}.${rec.rec.ext}` });
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${name}.${rec.rec.ext}`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+              },
+              (err: unknown) => store.getState().set({ exportPhase: 'error', exportError: err instanceof Error ? err.message : 'Recording failed.' }),
+            );
+          }, 600);
+        }
+      }
+    });
+    return () => {
+      offStore();
+      cancelRecording();
+      armRecording.current = null;
+      replayControl.restart = () => {};
+      replayControl.exportClip = () => {};
+    };
+  }, [gl]);
+  const enterReplay = () => replayApi.current.enter();
+  const leaveReplay = () => replayApi.current.leave();
+
   // ---- restart / pause / settings wiring ----
   useEffect(() => {
     const apply = () => {
@@ -171,7 +287,7 @@ export function GameController({ level }: { level: LevelDef }) {
       if (!runner || !input) return;
       const paused = app.overlay === 'pause' || app.overlay === 'settings';
       runner.paused = paused;
-      input.setEnabled(!paused && app.overlay !== 'complete');
+      input.setEnabled(!paused && app.overlay !== 'complete' && app.overlay !== 'replay');
       if (paused) input.clear();
     };
     apply();
@@ -182,6 +298,9 @@ export function GameController({ level }: { level: LevelDef }) {
         useProgressStore.getState().recordAttempt(level.id);
       }
       if (s.overlay !== prev.overlay) apply();
+      if (s.screen !== 'playing' || s.runNonce !== prev.runNonce) leaveReplay();
+      else if (s.overlay === 'replay' && prev.overlay !== 'replay') enterReplay();
+      else if (s.overlay !== 'replay' && prev.overlay === 'replay') leaveReplay();
     });
     const applySettings = () => {
       const st = useSettingsStore.getState();

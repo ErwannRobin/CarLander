@@ -54,6 +54,7 @@ export function LevelComplete() {
   const nextLevel = useAppStore((s) => s.nextLevel);
   const restart = useAppStore((s) => s.restart);
   const goLevelSelect = useAppStore((s) => s.goLevelSelect);
+  const openReplay = useAppStore((s) => s.openReplay);
   const restartCodes = useSettingsStore((s) => s.bindings.restart);
 
   const rootRef = useRef<HTMLDivElement>(null);
@@ -189,6 +190,10 @@ export function LevelComplete() {
             <Icon name="restart" className="rf-btn__icon" />
             Retry
             <ShortcutKey action="restart" />
+          </button>
+          <button type="button" className="rf-btn" data-nav onClick={openReplay}>
+            <Icon name="film" className="rf-btn__icon" />
+            Watch replay
           </button>
           {hasNext && (
             <button type="button" className="rf-btn rf-btn--quiet" data-nav onClick={goLevelSelect}>

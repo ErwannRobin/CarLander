@@ -26,6 +26,7 @@ import {
 import { useAppStore } from '@/state/appStore';
 import { cameraServices } from './cameraServices';
 import { damp, noise1, smoothDampVec3, smoothstep } from './smoothing';
+import { SpectatorCam } from './spectator';
 
 const WORLD_UP = new Vector3(0, 1, 0);
 const DEG = Math.PI / 180;
@@ -95,7 +96,10 @@ export function CameraRig() {
     collideDist: Infinity,
     lift: 0,
     shakeTime: 0,
+    /** Replay camera of the previous frame: 0 none, 1 chase, 2 spectator. */
+    replayCam: 0,
   });
+  const spectator = useRef(new SpectatorCam());
 
   useEffect(() => {
     const s = st.current;
@@ -186,6 +190,28 @@ export function CameraRig() {
     const v = snap.vehicle;
     const dt = Math.min(0.05, Math.max(1e-4, f.dt));
     const P = f.position;
+
+    // ---------------- replay ----------------
+    // The spectator rig owns the camera outright; the chase rig below is reused as is for the
+    // "chase" replay view and re-initialised whenever the camera hands back to it.
+    const rp = runtime.replay;
+    const replayCam = !rp.active ? 0 : rp.spectator ? 2 : 1;
+    if (replayCam !== s.replayCam) {
+      const prev = s.replayCam;
+      s.replayCam = replayCam;
+      if (prev === 2) s.fov = camera.fov;
+      if (replayCam === 0) {
+        // back on the results screen: orbit the finished car again
+        s.mode = 'complete';
+        tmp.copy(camera.position).sub(P);
+        s.orbit = Math.atan2(tmp.z, tmp.x);
+      }
+      s.initialized = false;
+    }
+    if (replayCam === 2) {
+      spectator.current.update(camera, f, runtime.runId, f.dt);
+      return;
+    }
 
     carUp.set(0, 1, 0).applyQuaternion(f.quaternion);
     carFwd.set(0, 0, -1).applyQuaternion(f.quaternion);
