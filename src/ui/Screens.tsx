@@ -4,7 +4,7 @@
  *   boot        → <BootScreen/>
  *   title       → <TitleScreen/>
  *   levelSelect → <LevelSelect/>
- *   playing     → <Hud/> + <CrashBanner/> + <TouchControls/> + pause / complete overlays
+ *   playing     → <Hud/> + <CrashBanner/> + <TouchControls/> + pause / complete / replay overlays
  *   settings overlay (any screen) → <SettingsPanel/>
  *
  * Also drives menu navigation from a gamepad (<GamepadMenuNav/>) whenever a menu is up.
@@ -21,6 +21,7 @@ import { Hud } from './hud/Hud';
 import { LevelComplete } from './LevelComplete';
 import { LevelSelect } from './LevelSelect';
 import { PauseMenu } from './PauseMenu';
+import { ReplayView } from './ReplayView';
 import { SettingsPanel } from './SettingsPanel';
 import { TitleScreen } from './TitleScreen';
 import { TouchControls } from './TouchControls';
@@ -54,10 +55,11 @@ export function Screens({ bootProgress, bootMessage, autoRestartMs, forceTouch }
       {screen === 'playing' && (
         <>
           <Hud />
-          {overlay !== 'complete' && <CrashBanner autoRestartMs={autoRestartMs} />}
-          <TouchControls force={forceTouch} />
+          {overlay !== 'complete' && overlay !== 'replay' && <CrashBanner autoRestartMs={autoRestartMs} />}
+          {overlay !== 'replay' && <TouchControls force={forceTouch} />}
           {overlay === 'pause' && <PauseMenu />}
           {overlay === 'complete' && <LevelComplete />}
+          {overlay === 'replay' && <ReplayView />}
         </>
       )}
       {overlay === 'settings' && <SettingsPanel />}

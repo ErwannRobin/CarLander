@@ -39,7 +39,7 @@ export function Hud() {
   const touch = useTouchUiActive();
   const [guideOpen, setGuideOpen] = useState(false);
 
-  const hidden = overlay === 'complete';
+  const hidden = overlay === 'complete' || overlay === 'replay';
   const interactive = overlay === 'none';
   // The guide toggles on the physical H key unless the player bound it to a game action.
   const hIsGameKey = useMemo(() => actionForCode(bindings, GUIDE_KEY) !== null, [bindings]);

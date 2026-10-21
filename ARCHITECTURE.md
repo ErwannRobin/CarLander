@@ -95,6 +95,25 @@ EffectComposer (prio 1) renders
 - Slow motion: the sim *requests* `snapshot.timeScale` (tutorial prompts, crash, perfect landing); the runner scales real time before accumulating fixed ticks. Physics dt is always constant ⇒ deterministic for a given input sequence.
 - Restart (`R`): the runner calls `sim.reset()` — immediate, deterministic (fresh Rapier world), emits `{type:'reset'}`; renderers clear transient state (particles, trails) on `reset`.
 
+### Replay & clip export
+
+The sim is deterministic, so a replay is a **re-simulation**, not a recording of poses. `GameRunner` logs the input of
+every fixed tick (`src/game/replay.ts` `InputLog`, unquantised doubles + the flight-assist flag) and, during the live
+run, the ticks of landings and of the finish (`moments`). From the results screen ("Watch replay", overlay `replay`):
+
+- `runner.startReplay()` builds a **second** `GameSim` (the finished run is untouched), silently re-simulates up to the
+  start of the clip (`planClip`: the last 10 s, ending 2 s after the finish) in time slices, then plays the logged
+  inputs at `snapshot.timeScale x director x speed`. The director (`slowMotionAt`) eases down to 0.3-0.45x around
+  each landing and the finish; the UI can turn it off and add 1x / 1/2x / 1/4x. Replay events go to `runtime.events`
+  (VFX, audio) but never to `hooks.onEvent` (no second result, no auto-restart).
+- `runtime.replay = { active, spectator }`. The `CameraRig` hands over to `SpectatorCam` (`render/camera/spectator.ts`):
+  a trackside tripod that cuts ahead of the car (or to the predicted landing point in the air), checks line of sight
+  with the physics raycast, and zooms to keep the car the same size. "Chase" reuses the normal rig.
+- Export: `ClipRecorder` (`render/replay/ClipRecorder.ts`) records the WebGL canvas with MediaRecorder while the clip
+  plays from its start (MP4 first, WebM as fallback), so the file shows exactly what was on screen, slow motion included.
+  No HUD, no sound. State and commands: `state/replayStore.ts`; wiring: `GameController`; panel: `ui/ReplayView.tsx`.
+- Tests: `tests/replay/replay.test.ts` (the re-simulated pose at the finish equals the live one to 1e-9).
+
 ### GameSim API (physics/sim owner implements in `src/game/sim/GameSim.ts`)
 
 ```ts

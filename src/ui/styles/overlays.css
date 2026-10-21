@@ -883,3 +883,166 @@
     margin-top: calc(var(--rf-u) * 10);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* Replay                                                              */
+/* ------------------------------------------------------------------ */
+
+.rf-replay {
+  /* the 3D view stays fully visible: only the edges carry UI */
+  pointer-events: none;
+}
+.rf-replay button,
+.rf-replay a,
+.rf-replay label {
+  pointer-events: auto;
+}
+.rf-replay__top {
+  position: absolute;
+  top: var(--rf-pad-t);
+  left: var(--rf-pad-l);
+  right: var(--rf-pad-r);
+  display: flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 16);
+  animation: rf-rise-in 420ms var(--rf-ease) both;
+}
+.rf-replay__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 8);
+  padding: calc(var(--rf-u) * 6) calc(var(--rf-u) * 14);
+  border: 1px solid var(--rf-line-2);
+  border-radius: 999px;
+  background: var(--rf-glass);
+  font: 600 var(--rf-fs-xs) / 1 var(--rf-display);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.rf-replay__dot {
+  width: calc(var(--rf-u) * 8);
+  height: calc(var(--rf-u) * 8);
+  border-radius: 50%;
+  background: var(--rf-cyan);
+  box-shadow: 0 0 10px rgba(56, 232, 255, 0.7);
+}
+.rf-replay__dot--rec {
+  background: var(--rf-red);
+  box-shadow: 0 0 10px rgba(255, 43, 61, 0.8);
+  animation: rf-replay-blink 1s steps(2, jump-none) infinite;
+}
+@keyframes rf-replay-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+.rf-replay__where {
+  color: var(--rf-ink-2);
+  font: 500 var(--rf-fs-sm) / 1 var(--rf-sans);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+.rf-replay__slow {
+  margin-left: auto;
+  color: var(--rf-amber);
+  font: 600 var(--rf-fs-xs) / 1 var(--rf-mono);
+  letter-spacing: 0.1em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
+}
+.rf-replay__prep {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--rf-u) * 14);
+  background: rgba(10, 12, 15, 0.55);
+  font: 500 var(--rf-fs-md) / 1 var(--rf-sans);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rf-replay__prep-bar {
+  width: min(320px, 60vw);
+  height: 3px;
+  background: rgba(241, 237, 230, 0.14);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.rf-replay__prep-bar i,
+.rf-replay__track i {
+  display: block;
+  height: 100%;
+  background: var(--rf-cyan);
+  box-shadow: 0 0 10px rgba(56, 232, 255, 0.6);
+}
+.rf-replay__bar {
+  position: absolute;
+  left: var(--rf-pad-l);
+  right: var(--rf-pad-r);
+  bottom: var(--rf-pad-b);
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--rf-u) * 12);
+  padding: calc(var(--rf-u) * 14) calc(var(--rf-u) * 18);
+  border-radius: calc(var(--rf-u) * 10);
+  animation: rf-rise-in 420ms 120ms var(--rf-ease) both;
+}
+.rf-replay__track {
+  height: 3px;
+  background: rgba(241, 237, 230, 0.14);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.rf-replay__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--rf-u) * 12) calc(var(--rf-u) * 20);
+}
+.rf-replay__group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--rf-u) * 10);
+}
+.rf-replay__speed {
+  min-width: max(44px, calc(var(--rf-u) * 48));
+}
+.rf-replay__auto {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--rf-u) * 10);
+  color: var(--rf-ink-2);
+  font: 500 var(--rf-fs-sm) / 1 var(--rf-sans);
+  cursor: pointer;
+}
+.rf-replay__note {
+  margin: 0;
+  color: var(--rf-ink-3);
+  font: 400 var(--rf-fs-xs) / 1.4 var(--rf-sans);
+}
+.rf-replay__note--err {
+  color: var(--rf-red-soft);
+}
+@media (max-width: 760px) {
+  .rf-replay__row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .rf-replay__group {
+    justify-content: center;
+  }
+  .rf-replay__where {
+    display: none;
+  }
+}
+@media (max-height: 520px) {
+  .rf-replay__bar {
+    flex-direction: row;
+    align-items: center;
+  }
+  .rf-replay__track {
+    display: none;
+  }
+}

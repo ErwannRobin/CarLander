@@ -19,6 +19,8 @@ export interface GameRuntime {
   quality: QualityPreset;
   /** Incremented each time the run is reset (restart) — components can compare to clear transient state. */
   runId: number;
+  /** Set while a replay is on screen: the camera switches to the spectator rig when `spectator` is true. */
+  replay: { active: boolean; spectator: boolean };
 }
 
 /** useFrame priority used by the runner to publish the frame (lower runs first). */
@@ -45,4 +47,5 @@ export const runtime: GameRuntime = {
   level: null,
   quality: QUALITY_PRESETS.high,
   runId: 0,
+  replay: { active: false, spectator: true },
 };

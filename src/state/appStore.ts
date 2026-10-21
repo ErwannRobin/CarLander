@@ -5,7 +5,8 @@
  *                      ▲                              ▲                          │
  *                      └───────── goTitle() ──────────┴──── goLevelSelect() ─────┘
  *
- * While `screen === 'playing'` an overlay may be shown: pause | settings | complete.
+ * While `screen === 'playing'` an overlay may be shown: pause | settings | complete | replay
+ * (replay opens from complete and returns to it).
  * Settings can also open over the title / level select; `settingsFrom` remembers which
  * overlay to return to on close.
  *
@@ -23,7 +24,7 @@ import { resetHud } from './hudStore';
 import { useProgressStore, type RecordOutcome } from './progressStore';
 
 export type Screen = 'boot' | 'title' | 'levelSelect' | 'playing';
-export type Overlay = 'none' | 'pause' | 'settings' | 'complete';
+export type Overlay = 'none' | 'pause' | 'settings' | 'complete' | 'replay';
 
 export interface AppState {
   screen: Screen;
@@ -48,6 +49,9 @@ export interface AppState {
   openSettings(): void;
   closeSettings(): void;
   showComplete(result: LevelResult): void;
+  /** Results screen → replay of the last seconds of the run, and back. */
+  openReplay(): void;
+  closeReplay(): void;
   nextLevel(): void;
 }
 
@@ -127,6 +131,14 @@ export const useAppStore = create<AppState>()((set, get) => ({
       return;
     }
     set({ overlay: 'complete', settingsFrom: 'none', lastResult: result, lastRecord });
+  },
+
+  openReplay: () => {
+    if (get().screen === 'playing' && get().overlay === 'complete') set({ overlay: 'replay' });
+  },
+
+  closeReplay: () => {
+    if (get().overlay === 'replay') set({ overlay: 'complete' });
   },
 
   nextLevel: () => {

@@ -60,6 +60,7 @@ function useAudioWiring() {
       if (a.screen !== 'playing') audio.setScene('title');
       else if (a.overlay === 'pause' || a.overlay === 'settings') audio.setScene('paused');
       else if (a.overlay === 'complete') audio.setScene('complete');
+      else if (a.overlay === 'replay') audio.setScene('game');
       else audio.setScene('game');
     };
     applyScene();
