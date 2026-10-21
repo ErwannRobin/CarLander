@@ -110,7 +110,7 @@ run, the ticks of landings and of the finish (`moments`). From the results scree
   a trackside tripod that cuts ahead of the car (or to the predicted landing point in the air), checks line of sight
   with the physics raycast, and zooms to keep the car the same size. "Chase" reuses the normal rig.
 - Export: `ClipRecorder` (`render/replay/ClipRecorder.ts`) records the WebGL canvas with MediaRecorder while the clip
-  plays from its start (WebM, or MP4 on Safari), so the file shows exactly what was on screen, slow motion included.
+  plays from its start (MP4 first, WebM as fallback), so the file shows exactly what was on screen, slow motion included.
   No HUD, no sound. State and commands: `state/replayStore.ts`; wiring: `GameController`; panel: `ui/ReplayView.tsx`.
 - Tests: `tests/replay/replay.test.ts` (the re-simulated pose at the finish equals the live one to 1e-9).
 

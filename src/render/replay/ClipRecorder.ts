@@ -1,13 +1,15 @@
 /**
  * Records the WebGL canvas to a video file with MediaRecorder (what the player sees: camera, post
- * effects, slow motion; no HUD, no sound). WebM where supported, MP4 on Safari.
+ * effects, slow motion; no HUD, no sound). MP4 (H.264) where the browser can record it, WebM otherwise.
  */
 const CANDIDATES: Array<{ mime: string; ext: string }> = [
+  // MP4 first: it plays everywhere (iPhone, messaging apps); WebM only where MP4 recording is missing
+  { mime: 'video/mp4;codecs=avc1.640028', ext: 'mp4' },
+  { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
+  { mime: 'video/mp4', ext: 'mp4' },
   { mime: 'video/webm;codecs=vp9', ext: 'webm' },
   { mime: 'video/webm;codecs=vp8', ext: 'webm' },
   { mime: 'video/webm', ext: 'webm' },
-  { mime: 'video/mp4;codecs=avc1', ext: 'mp4' },
-  { mime: 'video/mp4', ext: 'mp4' },
 ];
 
 export function pickRecordingFormat(): { mime: string; ext: string } | null {

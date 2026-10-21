@@ -42,7 +42,7 @@ const initial = {
   camera: 'spectator' as ReplayCamera,
   exportPhase: 'idle' as ExportPhase,
   exportUrl: null,
-  exportName: 'roadster-flight-replay.webm',
+  exportName: 'roadster-flight-replay.mp4',
   exportError: null,
 };
 
