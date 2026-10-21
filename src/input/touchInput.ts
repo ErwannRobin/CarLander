@@ -47,6 +47,15 @@ export function wheelZoomFactor(e: WheelEvent): number {
   return Math.exp(e.deltaY * lines * (e.ctrlKey ? 0.01 : 0.0012));
 }
 
+/** Radians of orbit per dragged pixel. */
+export const LOOK_YAW_PER_PX = 0.0075;
+export const LOOK_PITCH_PER_PX = 0.0055;
+/** Highest and lowest the boom may be swung (rad, relative to the framing the camera would use). */
+export const LOOK_PITCH_MAX = 1.1;
+export const LOOK_PITCH_MIN = -0.25;
+
+export const wrapPi = (a: number) => a - Math.PI * 2 * Math.round(a / (Math.PI * 2));
+
 /**
  * Free-look offset of the chase camera, set by dragging a finger over the scene and read by
  * CameraRig. `yaw` orbits around the car's up axis (rad, + = camera moves to the car's right),
