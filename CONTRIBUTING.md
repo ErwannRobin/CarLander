@@ -12,9 +12,7 @@ npm run dev        # http://127.0.0.1:5173
 ## Before opening a pull request
 
 ```bash
-npm run typecheck
-npm test
-npm run build
+make check   # same as: npm run typecheck && npm test && npm run build
 ```
 
 CI runs the same checks. Level changes should keep `tests/levels/*` passing: those tests

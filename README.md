@@ -16,6 +16,8 @@ npm run build      # typecheck + production build into dist/
 npm test           # headless physics, sim and level tests
 ```
 
+Or use `make`: run `make help` to list the targets (`make dev`, `make check`, `make clean`, ...).
+
 ## Controls
 
 | Action | Keyboard | Notes |
