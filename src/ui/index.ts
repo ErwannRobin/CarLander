@@ -11,6 +11,7 @@ export { LevelSelect } from './LevelSelect';
 export { Hud } from './hud/Hud';
 export { CrashBanner, type CrashBannerProps } from './CrashBanner';
 export { PauseMenu } from './PauseMenu';
+export { AboutPanel } from './AboutPanel';
 export { SettingsPanel } from './SettingsPanel';
 export { LevelComplete } from './LevelComplete';
 export { TouchControls, type TouchControlsProps } from './TouchControls';

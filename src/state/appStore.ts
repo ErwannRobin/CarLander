@@ -8,7 +8,7 @@
  * While `screen === 'playing'` an overlay may be shown: pause | settings | complete | replay
  * (replay opens from complete and returns to it).
  * Settings can also open over the title / level select; `settingsFrom` remembers which
- * overlay to return to on close.
+ * overlay to return to on close. The about panel opens over the title only.
  *
  * Integration contract:
  *  - call `boot()` once the game is ready (physics initialised, first frame rendered);
@@ -24,7 +24,7 @@ import { resetHud } from './hudStore';
 import { useProgressStore, type RecordOutcome } from './progressStore';
 
 export type Screen = 'boot' | 'title' | 'levelSelect' | 'playing';
-export type Overlay = 'none' | 'pause' | 'settings' | 'complete' | 'replay';
+export type Overlay = 'none' | 'pause' | 'settings' | 'complete' | 'replay' | 'about';
 
 export interface AppState {
   screen: Screen;
@@ -48,6 +48,8 @@ export interface AppState {
   togglePause(): void;
   openSettings(): void;
   closeSettings(): void;
+  openAbout(): void;
+  closeAbout(): void;
   showComplete(result: LevelResult): void;
   /** Results screen → replay of the last seconds of the run, and back. */
   openReplay(): void;
@@ -120,6 +122,14 @@ export const useAppStore = create<AppState>()((set, get) => ({
     const s = get();
     if (s.overlay !== 'settings') return;
     set({ overlay: s.settingsFrom, settingsFrom: 'none' });
+  },
+
+  openAbout: () => {
+    if (get().screen === 'title' && get().overlay === 'none') set({ overlay: 'about' });
+  },
+
+  closeAbout: () => {
+    if (get().overlay === 'about') set({ overlay: 'none' });
   },
 
   showComplete: (result) => {

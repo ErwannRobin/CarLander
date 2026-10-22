@@ -1046,3 +1046,40 @@
     display: none;
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* About (reuses the settings sheet, narrower and single column)       */
+/* ------------------------------------------------------------------ */
+
+.rf-about .rf-settings__sheet {
+  width: min(100%, calc(var(--rf-u) * 560));
+}
+.rf-about__body {
+  grid-template-columns: minmax(0, 1fr);
+}
+.rf-about__text {
+  margin: 0 0 calc(var(--rf-u) * 12);
+  font: 400 var(--rf-fs-sm) / 1.5 var(--rf-sans);
+  color: var(--rf-ink-2);
+}
+.rf-about__link {
+  display: inline-flex;
+  text-decoration: none;
+  margin-bottom: calc(var(--rf-u) * 6);
+}
+.rf-about__inline {
+  color: var(--rf-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--rf-ink-3);
+  text-underline-offset: 3px;
+}
+.rf-about__inline:hover,
+.rf-about__inline:focus-visible {
+  text-decoration-color: var(--rf-ink);
+}
+
+@media (max-width: 760px) {
+  .rf-about .rf-settings__sheet {
+    width: 100%;
+  }
+}

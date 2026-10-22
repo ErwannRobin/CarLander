@@ -6,6 +6,7 @@
  *   levelSelect → <LevelSelect/>
  *   playing     → <Hud/> + <CrashBanner/> + <TouchControls/> + pause / complete / replay overlays
  *   settings overlay (any screen) → <SettingsPanel/>
+ *   about overlay (title only)    → <AboutPanel/>
  *
  * Also drives menu navigation from a gamepad (<GamepadMenuNav/>) whenever a menu is up.
  * Render it once, above the canvas. `data-quality="low"` disables backdrop blur.
@@ -14,6 +15,7 @@ import { useEffect } from 'react';
 import { useAppStore } from '@/state/appStore';
 import { resetHud } from '@/state/hudStore';
 import { useSettingsStore } from '@/state/settingsStore';
+import { AboutPanel } from './AboutPanel';
 import { BootScreen } from './BootScreen';
 import { CrashBanner } from './CrashBanner';
 import { GamepadMenuNav } from './GamepadMenuNav';
@@ -63,6 +65,7 @@ export function Screens({ bootProgress, bootMessage, autoRestartMs, forceTouch }
         </>
       )}
       {overlay === 'settings' && <SettingsPanel />}
+      {overlay === 'about' && <AboutPanel />}
       <GamepadMenuNav />
     </div>
   );

@@ -25,7 +25,9 @@ export type IconName =
   | 'brake'
   | 'tilt'
   | 'download'
-  | 'film';
+  | 'film'
+  | 'info'
+  | 'external';
 
 const PATHS: Record<IconName, ReactNode> = {
   pause: (
@@ -149,6 +151,18 @@ const PATHS: Record<IconName, ReactNode> = {
     <>
       <rect x="3.5" y="9" width="17" height="10.5" rx="1.8" />
       <path d="M3.9 9 6 4.6l4.5 1L8.4 10M10.8 6l4.5 1L13.2 10.2M15.6 7.1l3.6.8-1.8 3" />
+    </>
+  ),
+  info: (
+    <>
+      <circle cx="12" cy="12" r="8.4" />
+      <path d="M12 11.2v5M12 7.9h.01" />
+    </>
+  ),
+  external: (
+    <>
+      <path d="M10 5.5H6.2a1.7 1.7 0 0 0-1.7 1.7v10.6a1.7 1.7 0 0 0 1.7 1.7h10.6a1.7 1.7 0 0 0 1.7-1.7V14" />
+      <path d="M14 4.5h5.5V10M19.5 4.5 11 13" />
     </>
   ),
 };
