@@ -24,6 +24,7 @@ export function TitleScreen() {
   const overlay = useAppStore((s) => s.overlay);
   const goLevelSelectRaw = useAppStore((s) => s.goLevelSelect);
   const openSettings = useAppStore((s) => s.openSettings);
+  const openAbout = useAppStore((s) => s.openAbout);
   const levels = useProgressStore((s) => s.levels);
   const mode = useInputMode();
   const active = overlay === 'none';
@@ -80,6 +81,10 @@ export function TitleScreen() {
           <button type="button" className="rf-btn" data-nav onClick={openSettings}>
             <Icon name="settings" className="rf-btn__icon" />
             Settings
+          </button>
+          <button type="button" className="rf-btn" data-nav onClick={openAbout}>
+            <Icon name="info" className="rf-btn__icon" />
+            About
           </button>
         </div>
         <p className="rf-title__hint">Drag to turn the car · pinch or scroll to zoom</p>
