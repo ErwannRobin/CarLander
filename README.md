@@ -68,3 +68,12 @@ landing quality and a combo multiplier. Medals, best scores and level unlocks ar
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the module layout, the sim/render contract and the
 design briefs.
+
+## License
+
+Code: [MIT](LICENSE) © Erwann Robin. The fonts (Inter, JetBrains Mono, Michroma) come from
+[Fontsource](https://fontsource.org) and are under the SIL Open Font License.
+
+ROADSTER FLIGHT is an independent fan project. It is not affiliated with, sponsored by or endorsed
+by Tesla, Inc. References to real stunts are for homage only; all names and trademarks belong to
+their owners. See [CONTRIBUTING.md](CONTRIBUTING.md) to help.

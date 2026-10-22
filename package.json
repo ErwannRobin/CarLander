@@ -1,6 +1,11 @@
 {
   "name": "roadster-flight",
   "private": true,
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ErwannRobin/CarLander.git"
+  },
   "version": "0.1.0",
   "type": "module",
   "scripts": {
