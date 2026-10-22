@@ -4,6 +4,8 @@
 
 **Launch a rocket-assisted roadster off monumental ramps above the clouds. Then land it perfectly.**
 
+### [▶ Play it in your browser](https://erwannrobin.github.io/CarLander/)
+
 [![CI](https://github.com/ErwannRobin/CarLander/actions/workflows/ci.yml/badge.svg)](https://github.com/ErwannRobin/CarLander/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
