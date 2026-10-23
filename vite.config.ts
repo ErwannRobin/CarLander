@@ -13,11 +13,8 @@ if (process.env.DEV_PAGES === '1' && existsSync(resolve(import.meta.dirname, 'de
   }
 }
 
-// Absolute URL for the Open Graph tags: SITE_URL, else the Vercel production domain, else a default guess.
-const siteUrl = (
-  process.env.SITE_URL ??
-  (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : 'https://carlander.vercel.app')
-).replace(/\/$/, '');
+// Absolute URL for the Open Graph tags: SITE_URL, else the canonical custom domain.
+const siteUrl = (process.env.SITE_URL ?? 'https://carlander.erwann.app').replace(/\/$/, '');
 
 export default defineConfig({
   plugins: [
